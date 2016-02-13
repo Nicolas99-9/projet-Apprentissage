@@ -27,12 +27,13 @@ def choose_initiale(data, k , labels) :
     for i in range(NUMBER_CLASSES):
         list_initiale[i] = []
     taille = len(data)
-    while(not check(list_initiale,k)):
-        i  = random.randrange(taille)
+    count = 0
+    while(count < k ):
+        i  = count
         tmp = list(data[i])
         label = labels[i]
-        if (not (tmp in list_initiale[label]) and (len(list_initiale[label])< k )) :
-            list_initiale[label].append(tmp)
+        list_initiale[label].append(tmp)
+        count += 1
     return list_initiale
 
 
@@ -60,6 +61,8 @@ dicos = unpickle("cifar-10-batches-py/data_batch_1")
 
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 
+dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
+
 def normalized(ma_liste):
     means = np.mean(ma_liste)
     var = np.std(ma_liste)
@@ -68,35 +71,17 @@ def normalized(ma_liste):
     return ma_liste
 
 
+
 def get_patches_from_image(image):
     result = {}
     for i in range(4):
         tmp = []
-        tmp = tmp  + list((itertools.islice(image, 256*i, 256*i+256)))
-        tmp = tmp  + list((itertools.islice(image, 256*i +1024, 256*i+256+1024)))
-        tmp = tmp  + list((itertools.islice(image, 256*i +2048, 256*i+256+2048)))
+        tmp = tmp  + [image[count] for count in range(256*i,256*i+256)]
+        tmp = tmp  + [image[count] for count in range(256*i +1024, 256*i+256+1024)]
+        tmp = tmp  + [image[count] for count in range(256*i +2048, 256*i+256+2048)]
         result[i] = tmp
     return result
 
-
-def generation_patches(dicos):
-    finale = {}
-    count = 0
-    for image in dicos['data'][:1]:
-        #len : 3072 : (1024 R , 1024 G , 1024 B)
-        #256 elements par patch 
-        finale[count] = []
-        for i in range(4):
-            tmp = []
-            tmp = tmp  + list((itertools.islice(image, 256*i, 256*i+256)))
-            tmp = tmp  + list((itertools.islice(image, 256*i +1024, 256*i+256+1024)))
-            tmp = tmp  + list((itertools.islice(image, 256*i +2048, 256*i+256+2048)))
-            finale[count].append(tmp)
-        count +=1
-    for element in finale:
-        finale[element] = [normalized(finale[element][i]) for i in range(len(finale[element]))]
-    return finale
-        
 
 #generate a dictionnary
 #dictionnary with 10 differents keys, each value contains 4 dictionnaries, each one for one patch
@@ -110,8 +95,10 @@ def construction_dictionnaire_n_patches(dictionnary,N):
         dico_patches_moyenne[classe][2] = []
         dico_patches_moyenne[classe][3] = []
         elements_de_la_classe = dico_random[classe]
+        #for each element, slice the array into patches
         for element in elements_de_la_classe:
             patches =get_patches_from_image(element)
+            #patch ok
             dico_patches_moyenne[classe][0].append(patches[0])
             dico_patches_moyenne[classe][1].append(patches[1])
             dico_patches_moyenne[classe][2].append(patches[2])
@@ -127,12 +114,11 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,37)
 
 
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,20)
 
-
-#------------------- TESTS-------------------------------
+#------------------- TESTS--------------------------------------------------------------------------
 
 def sortes(ma_list):
     result = sorted(ma_list.items(), key=operator.itemgetter(1))
@@ -141,6 +127,7 @@ def sortes(ma_list):
 
 def distance(a,b):
     return np.linalg.norm(a-b)
+
 
 def get_k_nearest_voisins(k,liste,x):
     lis = {}
@@ -154,7 +141,6 @@ def test_model(images,model,nb):
     labels = images['labels']
     data = images['data']
     resultat = []
-    print("taille de lodek",len(model[0]))
     assert(nb<len(data)),("Vous ne pouvez tester que sur : " + str(len(data)))
     for element in range(nb):
         patchs_actuel = get_patches_from_image(data[element])
@@ -162,39 +148,76 @@ def test_model(images,model,nb):
         for i in patchs_actuel:
             #each patch
             petit = []
-            #print(get_k_nearest_voisins(1,model[0][i],patchs_actuel[i]))
             var = 9999999  #distance max
             classe = -1
             for j in range(NUMBER_CLASSES):
                 #bug
                 varss = distance(np.array(model[j][i]),np.array(patchs_actuel[i]))
-                print("oKLMMMMMLls",varss)
                 if(varss<var):
                     var = varss
                     classe = j
             tableau  = [0 for i in range(NUMBER_CLASSES)]
             tableau[classe] = 1 
             buffers = buffers + tableau
-        phrase = "Id de l'image : " + str(element) + "Resultat pour 4 patches : " + str(buffers) + " vraie label : " + str(labels[element])
+        phrase = (element,buffers)
         resultat.append(phrase)
-    for element in resultat:
-        print("")
-        print(element)
+    return resultat
 
 
 
-test_model(dicos_test,elements_aleatoires_moyenne,10)
 
-#cree un dictionnaire normalise des patchs
-#dicos_normalized_patchs = generation_patches(dicos)
+print("Generation de la nouvelle representation des donnes")
+nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,500)
+print(nouvelles_donnes)
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,500)
+print("Generation terminee")
+
+print(nouvelles_test)
 
 
-#construction_dictionnaire_n_patches(dicos)
+'''
+#------------------------ Perceptron utilisant les nouvelles donnes --------------------------
 
+#return the estimate classes of an observation
+def classify(observation, poids):
+    vl = -1
+    classe = -1
+    for i in range(len(poids)):
+        tmp = np.dot(observation,poids[i])
+        if(tmp>vl):
+            vl = tmp
+            classe = i
+    return classe
 
-# dico contenant : cle data         => matrice d images, chaque ligne correspond a une image, les valeurs vont de 0 à 255
-#				       chaque element est un array contenant 2 elements([ 59,  43,  50, ..., 140,  84,  72], dtype=uint8)
-#                  cle labels       => liste contenant le vrai label de l image
-#                  cle batch_label  => unknown
-#		   cle filenames    => liste contenant le nom de l image 'camion_s_001895.png', 'trailer_truck_s_000335.png'
-#
+def learn(train,nb,poids,labels):
+    for s in range(1,nb+1): 
+        for (etiquette,element) in train:
+            estimation = classify(element,poids) 
+            reelle= labels[etiquette]
+            if(not (estimation == reelle)):
+                reelle= labels[etiquette]
+                poids[reelle] = poids[reelle] + element
+                poids[estimation] = poids[estimation] -element
+    return poids
+   
+#poids = [[0 for i in range(
+print("Debut du perceptron")
+poids = learn(nouvelles_donnes,100,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+print("Valeur des poids : ")
+print(poids)
+print("Fin du perceptron")
+
+def test(corpus,poids,labels):
+    erreur = 0.0
+    for etiquette,element in corpus:
+        vm = classify(element,poids)
+        print(vm , "vraie valeur : ",labels[etiquette])
+        if not vm == labels[etiquette]:
+            erreur +=1.0
+    return erreur/len(corpus)
+
+print("debut des tests")
+print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test_value['labels']))
+print("fin des test")
+'''
+
