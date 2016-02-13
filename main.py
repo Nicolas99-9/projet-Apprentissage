@@ -7,6 +7,8 @@ from pprint import pprint
 import itertools
 from pprint import pprint
 import random
+import operator
+
 
 NUMBER_CLASSES = 10
 
@@ -55,6 +57,8 @@ def unpickle(file):
 
 
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
+
+dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 
 def normalized(ma_liste):
     means = np.mean(ma_liste)
@@ -122,7 +126,64 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     return dico_patches_moyenne
 
 
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,2)
+#compute the representants, each classe has 4 representants
+
+
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,20)
+
+
+#------------------- TESTS-------------------------------
+
+def sortes(ma_list):
+    result = sorted(ma_list.items(), key=operator.itemgetter(1))
+    return result
+
+
+def distance(a,b):
+    return np.linalg.norm(a-b)
+
+def get_k_nearest_voisins(k,liste,x):
+    lis = {}
+    for i in range(len(liste)):
+        lis[i] = distance(x,liste[i])
+    return (sortes(lis)[:k])
+
+
+
+def test_model(images,model,nb):
+    labels = images['labels']
+    data = images['data']
+    resultat = []
+    print("taille de lodek",len(model[0]))
+    assert(nb<len(data)),("Vous ne pouvez tester que sur : " + str(len(data)))
+    for element in range(nb):
+        patchs_actuel = get_patches_from_image(data[element])
+        buffers = []
+        for i in patchs_actuel:
+            #each patch
+            petit = []
+            #print(get_k_nearest_voisins(1,model[0][i],patchs_actuel[i]))
+            var = 9999999  #distance max
+            classe = -1
+            for j in range(NUMBER_CLASSES):
+                #bug
+                varss = distance(np.array(model[j][i]),np.array(patchs_actuel[i]))
+                print("oKLMMMMMLls",varss)
+                if(varss<var):
+                    var = varss
+                    classe = j
+            tableau  = [0 for i in range(NUMBER_CLASSES)]
+            tableau[classe] = 1 
+            buffers = buffers + tableau
+        phrase = "Id de l'image : " + str(element) + "Resultat pour 4 patches : " + str(buffers) + " vraie label : " + str(labels[element])
+        resultat.append(phrase)
+    for element in resultat:
+        print("")
+        print(element)
+
+
+
+test_model(dicos_test,elements_aleatoires_moyenne,10)
 
 #cree un dictionnaire normalise des patchs
 #dicos_normalized_patchs = generation_patches(dicos)
