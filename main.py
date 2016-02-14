@@ -48,7 +48,6 @@ def moyenne_element(liste):
     for i in range(len(finale)):
         finale[i] = np.divide(finale[i],taille)
     return finale
-
 #-----------------------------------------------------------------------------------------------------
 
 def unpickle(file):
@@ -71,7 +70,6 @@ def show_image(img):
             to_display.append(tmp)
             tmp = []
     to_display = np.array(to_display)
-    print("shape ",to_display.shape)
     plt.imshow(to_display)
     plt.show()
 
@@ -79,7 +77,7 @@ def show_image(img):
 def display_image(i):
     show_image(dicos['data'][i])
 
-display_image(0)
+#display_image(0)
 
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 
@@ -137,14 +135,11 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/4)
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data']))
 
 
-for element in elements_aleatoires_moyenne:
-    print(element ,":")
-    print(elements_aleatoires_moyenne[element])
 
-'''
+
 #------------------- TESTS--------------------------------------------------------------------------
 #calcule la distance pour chaque patch avec l'ensemble des representants puis genere la nouvelle representation des donnees
 
@@ -153,7 +148,7 @@ for element in elements_aleatoires_moyenne:
 def distance(a,b):
     return np.linalg.norm(a-b)
 
-
+'''
 def test_model(images,model,nb):
     labels = images['labels']
     data = images['data']
@@ -179,18 +174,47 @@ def test_model(images,model,nb):
         resultat.append(phrase)
     return resultat
 
+'''
+
+
+def test_model(images,model,nb):
+    labels = images['labels']
+    data = images['data']
+    resultat = []
+    assert(nb<len(data)),("Vous ne pouvez tester que sur : " + str(len(data)))
+    for element in range(nb):
+        patchs_actuel = get_patches_from_image(data[element])
+        buffers = []
+        for i in patchs_actuel:
+            #each patch
+            petit = []
+            var = 9999999  #distance max
+            classe = -1
+            for j in range(NUMBER_CLASSES):
+                for w in range(4):
+                    varss = distance(np.array(model[j][w]),np.array(patchs_actuel[i]))
+                    if(varss<var):
+                        var = varss
+                        classe = j
+                    #print("j : ",j,varss,"classe :",classe)
+            tableau  = [0 for i in range(NUMBER_CLASSES)]
+            tableau[classe] = 1 
+            #print(classe," vraie lael : ",labels[element],tableau)
+            buffers = buffers + tableau
+        phrase = (element,buffers)
+        resultat.append(phrase)
+    return resultat
 
 
 
 
 print("Generation de la nouvelle representation des donnes")
-nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,250)
-
-print(nouvelles_donnes[0])
+nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,1000)
 
 
-nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,100)
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,1000)
 print("Generation terminee")
+
 
 def get_positions(liste):
     tmp =  [i for i in range(len(liste)) if liste[i]==1]
@@ -250,18 +274,21 @@ def classify(observation, poids):
 
 def learn(train,nb,poids,labels):
     for s in range(1,nb+1): 
+        erreur = 0.0
         for (etiquette,element) in train:
             estimation = classify(element,poids) 
             reelle= labels[etiquette]
             if(not (estimation == reelle)):
                 reelle= labels[etiquette]
+                erreur +=1
                 poids[reelle] = poids[reelle] + element
                 poids[estimation] = poids[estimation] -element
+        print("taux d'erreur : ",erreur/len(train))
     return poids
    
 #poids = [[0 for i in range(
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,500,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,250,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
 
 
 print("Valeur des poids : ")
@@ -280,5 +307,5 @@ def test(corpus,poids,labels):
 print("debut des tests")
 print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test_value['labels']))
 print("fin des test")
-'''
+
 
