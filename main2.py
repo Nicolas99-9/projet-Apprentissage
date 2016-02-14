@@ -152,7 +152,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     for i in range(4):
         print("DEBUT DES K MOYENNES ",i)
         #renvoie la partition à laquelle appartient chaque element et la liste des centres des partitions
-        partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],10,5,20)
+        partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],10,5,15)
         dico_patches_moyenne[i] =  moyennes
     print("-----------------------------------------")
     return dico_patches_moyenne
@@ -161,7 +161,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/4)
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/42)
 
 #elements_aleatoires_moyenne[0] to get the K means of the top left
 #elements_aleatoires_moyenne[0][0] => get the first average value of the top left patch
@@ -257,7 +257,7 @@ def plot_model(donnees):
     plt.savefig('ScatterPlot.png')
     plt.show()
 
-plot_model(nouvelles_donnes)
+#plot_model(nouvelles_donnes)
 
 
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
@@ -290,7 +290,7 @@ def learn(train,nb,poids,labels):
    
 #poids = [[0 for i in range(
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,50,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,3500,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
 
 '''
 print("Valeur des poids : ")
