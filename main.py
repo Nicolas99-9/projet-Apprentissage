@@ -8,6 +8,7 @@ import itertools
 from pprint import pprint
 import random
 import operator
+import matplotlib.pyplot as plt
 
 
 NUMBER_CLASSES = 10
@@ -56,8 +57,29 @@ def unpickle(file):
     fo.close()
     return dict
 
-
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
+
+def show_image(img):
+    to_display = []
+    count = 0
+    tmp = []
+    for i in range(1024):
+        tmp.append([img[i]/255.0,img[i+1024]/255.0,img[i+2048]/255.0])
+        count +=1
+        if(count%32==0):
+            count = 0
+            to_display.append(tmp)
+            tmp = []
+    to_display = np.array(to_display)
+    print("shape ",to_display.shape)
+    plt.imshow(to_display)
+    plt.show()
+
+
+def display_image(i):
+    show_image(dicos['data'][i])
+
+display_image(0)
 
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 
@@ -115,10 +137,14 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data']))
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/4)
 
 
+for element in elements_aleatoires_moyenne:
+    print(element ,":")
+    print(elements_aleatoires_moyenne[element])
 
+'''
 #------------------- TESTS--------------------------------------------------------------------------
 #calcule la distance pour chaque patch avec l'ensemble des representants puis genere la nouvelle representation des donnees
 
@@ -155,24 +181,57 @@ def test_model(images,model,nb):
 
 
 
-print("donnes : ",dicos_test['data'][0],dicos_test['labels'][0])
+
 
 print("Generation de la nouvelle representation des donnes")
-nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,100)
+nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,250)
+
+print(nouvelles_donnes[0])
 
 
-nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,1000)
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,100)
 print("Generation terminee")
 
-for (etui,elem) in nouvelles_donnes:
-    if(dicos_test['labels'][etui]==0):
-       print(elem)
+def get_positions(liste):
+    tmp =  [i for i in range(len(liste)) if liste[i]==1]
+    return tmp
 
-print("888888888888888888888888888888")
-for (etui,elem) in nouvelles_donnes:
-    if(dicos_test['labels'][etui]==8):
-       print(elem)
+def has_couple(x,y,ex, ey):
+    for i in range(len(x)):
+        if(x[i] == ex and y[i] == ey):
+            return i
+    return -1
 
+def plot_model(donnees):
+    labels =  dicos_test['labels'] 
+    dicoss = {}
+    for i in range(NUMBER_CLASSES):
+        dicoss[i] = []
+    for (etiquette,element) in donnees:
+        dicoss[labels[etiquette]] = dicoss[labels[etiquette]]+  get_positions(element)
+    x = []
+    y = []
+    s = []
+    for i in range(NUMBER_CLASSES):
+        print(len(dicoss[i]))
+    for i in range(NUMBER_CLASSES):
+        for element in dicoss[i]:
+            val = has_couple(x,y,element,i)
+            if(val==-1):
+                x.append(element)
+                y.append(i)
+                s.append(10)
+            else:
+                s[val] = s[val]+15
+    plt.scatter(x,y,s)
+    print(len(donnees))
+    plt.title('Repartition des points en fonction de la classe')
+    plt.xlabel('valeurs des points')
+    plt.ylabel('classe')
+    plt.savefig('ScatterPlot.png')
+    plt.show()
+
+plot_model(nouvelles_donnes)
 
 
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
@@ -204,11 +263,11 @@ def learn(train,nb,poids,labels):
 print("Debut du perceptron")
 poids = learn(nouvelles_donnes,500,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
 
-'''
+
 print("Valeur des poids : ")
 print(poids)
-print("Fin du perceptron")'''
-'''
+print("Fin du perceptron")
+
 def test(corpus,poids,labels):
     erreur = 0.0
     for etiquette,element in corpus:
