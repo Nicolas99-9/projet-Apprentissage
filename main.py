@@ -61,6 +61,7 @@ dicos = unpickle("cifar-10-batches-py/data_batch_1")
 
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 
+
 dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
 
 def normalized(ma_liste):
@@ -114,27 +115,17 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,37)
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data']))
 
 
 
 #------------------- TESTS--------------------------------------------------------------------------
+#calcule la distance pour chaque patch avec l'ensemble des representants puis genere la nouvelle representation des donnees
 
-def sortes(ma_list):
-    result = sorted(ma_list.items(), key=operator.itemgetter(1))
-    return result
 
 
 def distance(a,b):
     return np.linalg.norm(a-b)
-
-
-def get_k_nearest_voisins(k,liste,x):
-    lis = {}
-    for i in range(len(liste)):
-        lis[i] = distance(x,liste[i])
-    return (sortes(lis)[:k])
-
 
 
 def test_model(images,model,nb):
@@ -151,7 +142,6 @@ def test_model(images,model,nb):
             var = 9999999  #distance max
             classe = -1
             for j in range(NUMBER_CLASSES):
-                #bug
                 varss = distance(np.array(model[j][i]),np.array(patchs_actuel[i]))
                 if(varss<var):
                     var = varss
@@ -165,22 +155,32 @@ def test_model(images,model,nb):
 
 
 
+print("donnes : ",dicos_test['data'][0],dicos_test['labels'][0])
 
 print("Generation de la nouvelle representation des donnes")
-nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,500)
-print(nouvelles_donnes)
-nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,500)
+nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,100)
+
+
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,1000)
 print("Generation terminee")
 
-print(nouvelles_test)
+for (etui,elem) in nouvelles_donnes:
+    if(dicos_test['labels'][etui]==0):
+       print(elem)
+
+print("888888888888888888888888888888")
+for (etui,elem) in nouvelles_donnes:
+    if(dicos_test['labels'][etui]==8):
+       print(elem)
 
 
-'''
+
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
+#
 
 #return the estimate classes of an observation
 def classify(observation, poids):
-    vl = -1
+    vl = 0
     classe = -1
     for i in range(len(poids)):
         tmp = np.dot(observation,poids[i])
@@ -202,11 +202,13 @@ def learn(train,nb,poids,labels):
    
 #poids = [[0 for i in range(
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,100,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,500,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+
+'''
 print("Valeur des poids : ")
 print(poids)
-print("Fin du perceptron")
-
+print("Fin du perceptron")'''
+'''
 def test(corpus,poids,labels):
     erreur = 0.0
     for etiquette,element in corpus:
