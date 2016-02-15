@@ -10,22 +10,21 @@ import random
 import operator
 import matplotlib.pyplot as plt
 import kmeans2
-from sklearn.feature_extraction import image
 
 
 
 
-NUMBER_CLASSES = 40
+NUMBER_CLASSES = 250
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
-NUMBER_PERIODS = 5
+NUMBER_PERIODS = 15
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 500
+NUMBER_K_MEANS = 1500
 #number of data for training
-NUMBER_TRAIN = 500
+NUMBER_TRAIN = 5000
 #number of data to evaluate our model
-NUMBER_TEST = 500
+NUMBER_TEST = 2500
 #number of periods of the perceptron
 EPOQS = 100
 
@@ -322,7 +321,7 @@ def test(corpus,poids,labels):
 
 
 print("Debut du perceptron")
-poids = learn(nouvelles_test,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])
 print("Valeur des poids : ")
 print(poids)
 print("Fin du perceptron")
