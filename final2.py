@@ -10,27 +10,30 @@ import random
 import operator
 import matplotlib.pyplot as plt
 import kmeans2
+from scipy.cluster.vq import whiten
 
 
 
 
-NUMBER_CLASSES = 250
+
+NUMBER_CLASSES = 50
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
-NUMBER_PERIODS = 15
+NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 1500
+NUMBER_K_MEANS = 100
 #number of data for training
-NUMBER_TRAIN = 5000
+NUMBER_TRAIN = 300
 #number of data to evaluate our model
-NUMBER_TEST = 2500
+NUMBER_TEST = 200
 #number of periods of the perceptron
-EPOQS = 100
+EPOQS = 60
 
 
 #correct the bug of the kmean function
-
+#write a svm
+#only four 0
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
@@ -88,12 +91,14 @@ def unpickle(file):
     fo.close()
     return dict
 
+
+#besoin d'utiliser abs ???
 #function to normalized a list
 def normalized(ma_liste):
     means = np.mean(ma_liste)
     var = np.std(ma_liste)
     for i in range(len(ma_liste)):
-        ma_liste[i] = abs(((ma_liste[i])-means)/var) 
+        ma_liste[i] = (((ma_liste[i])-means)/var) 
     return ma_liste
 
 
@@ -154,16 +159,23 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     return dico_patches_moyenne
 
 '''
+
+def whitetening(liste):
+     to = whiten(liste)
+     return list(to)
+
 def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
         patches =  get_patches_from_image(dico_random[i])
         for j in range(NUMBER_PATCHES):
-            mes_patches.append(patches[j])
+            mes_patches.append(whitetening(normalized(patches[j])))
     for i in range(len(mes_patches)):
         if(len(mes_patches[i]) != 768):
             print("Nombre de patchs extraits (4 par image) ",len(mes_patches))
+    random.seed(125)
+    random.shuffle(mes_patches)
     partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,1,NUMBER_PERIODS)
     return moyennes
 
@@ -173,23 +185,24 @@ dicos = unpickle("cifar-10-batches-py/data_batch_1")
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
 
 
-for e in elements_aleatoires_moyenne:
-    print(len(e))
-
-print("longueur de l",len(elements_aleatoires_moyenne))
-
 
 #display_image(0,dicos)
 '''
 show_image_after(get_patches_from_image(dicos['data'][0])[0])
 show_image_after(get_patches_from_image(dicos['data'][0])[1])
 show_image_after(get_patches_from_image(dicos['data'][0])[2])
-show_image_after(get_patches_from_image(dicos['data'][0])[3])'''
+show_image_after(get_patches_from_image(dicos['data'][0])[3])
+
+
+show_image_after(normalized(get_patches_from_image(dicos['data'][0])[0]))
+show_image_after(normalized(get_patches_from_image(dicos['data'][0])[1]))
+show_image_after(normalized(get_patches_from_image(dicos['data'][0])[2]))
+show_image_after(normalized(get_patches_from_image(dicos['data'][0])[3]))
+'''
 
 
 
 
-dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 #dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
 #---------------------------------------FEATURES GENERATION--------------------------------
 
@@ -228,11 +241,14 @@ def test_model(images,model,nb):
 
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
-nouvelles_test = test_model(dicos_test ,elements_aleatoires_moyenne,NUMBER_TEST)
+
+
+
+
 
 
 for i in nouvelles_donnes:
-    print(len(i))
+    print(len(i),i)
 
 
 print("Generation terminee")
@@ -326,7 +342,9 @@ print("Valeur des poids : ")
 print(poids)
 print("Fin du perceptron")
 print("debut des tests")
-print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test['labels']))
+
+pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
+test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
+
+print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
 print("fin des test")
-
-
