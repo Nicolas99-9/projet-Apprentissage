@@ -16,17 +16,17 @@ import kmeans
 
 NUMBER_CLASSES = 10
 #number of patches per image
-NUMBER_PATCHES = 9
+NUMBER_PATCHES =  4
 #number of perdios for k means function
-NUMBER_PERIODS = 20
+NUMBER_PERIODS = 25
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 300
+NUMBER_K_MEANS = 700
 #number of data for training
-NUMBER_TRAIN = 200
+NUMBER_TRAIN = 700
 #number of data to evaluate our model
-NUMBER_TEST = 200
+NUMBER_TEST = 700
 #number of periods of the perceptron
-EPOQS = 50
+EPOQS = 100
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
@@ -55,6 +55,21 @@ def show_image(img):
             count = 0
             to_display.append(tmp)
             tmp = []
+    to_display = np.array(to_display)
+    plt.imshow(to_display)
+    plt.show()
+
+def show_image_after(img):
+    to_display = []
+    taile = np.sqrt(NUMBER_PATCHES)
+    taile = int(32/taile)*3
+    print("tailel : ",taile)
+    for i in xrange(0,len(img),taile):
+        tmp = []
+        print(i)
+        for j in xrange(i,i+taile,3):
+            tmp.append([img[j]/255.0,img[j+1]/255.0,img[j+2]/255.0])
+        to_display.append(tmp)
     to_display = np.array(to_display)
     plt.imshow(to_display)
     plt.show()
@@ -92,7 +107,10 @@ def get_patches_from_image(image):
         result[i] = tmp
     return result
 '''
-
+def chunks(l, n):
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+'''
 def get_patches_from_image(image):
     result = {}
     for i in range(NUMBER_PATCHES):
@@ -104,12 +122,61 @@ def get_patches_from_image(image):
         tmp.append(image[i+2048])
     tmp = np.array(tmp)
     tmp = tmp.reshape(32,96)
-    nb_lignes = int((96/np.sqrt(NUMBER_PATCHES)))
-    nb_colonnes = int((32/np.sqrt(NUMBER_PATCHES)))
+    for i in range(NUMBER_PATCHES):
+        print("debut fin",(i%NUMBER_PATCHES),i)
+    taille = 96/np.sqrt(NUMBER_PATCHES)
+    taille2 = 32/np.sqrt(NUMBER_PATCHES)
     for j in range(len(tmp)):
-        for i in range(len(tmp[0])):
-            print(j,i,j/nb_colonnes,i/)
-    return {}
+        bdd = list(chunks(tmp[j],int(taille)))
+        count = 0
+        for e in bdd:
+            indice = int(round((j/taille2))+count)
+            result[indice] = result[indice]+list(e)
+            count +=1
+    return result
+'''
+
+def get_patches_from_image(image):
+    result = {}
+    for i in range(NUMBER_PATCHES):
+        result[i] = []
+    #nb de colonnes
+    nb = int(np.sqrt(NUMBER_PATCHES))
+    taille_ligne = 32
+    par_ligne = int(taille_ligne/nb)
+    splied = list(chunks(image,par_ligne))
+    count = 0
+    tmp = 0
+    k = 0
+    tier = len(splied)/3
+    doubles = 2*tier
+    for i in range(len(splied)/3):
+        indice = (i%nb)+k
+        if(indice>=NUMBER_PATCHES):
+            return result
+        ddd = []
+        ddd.append(iter(splied[i]))
+        ddd.append(iter(splied[i+tier]))
+        ddd.append(iter(splied[i+doubles]))
+        #print("longuiedueuueueu",len(splied[i+doubles]),indice)
+        result[indice] = result[indice]+ list(it.next() for it in itertools.cycle(ddd))
+        if((indice-k)==(nb-1)):
+            tmp+=1
+        if(tmp==(par_ligne)):
+            k += nb
+            tmp =  0
+    return result
+
+'''
+import numpy as numpy
+def get_patches_from_image(image):
+    size_r = 5
+    size = 5
+    for r in range(0,test_image.shape[0] - windowsize_r, windowsize_r):
+        for c in range(0,test_image.shape[1] - windowsize_c, windowsize_c):
+            window = test_image[r:r+windowsize_r,c:c+windowsize_c]
+            hist = numpy.histogram(window,bins=grey_levels)
+'''
 
 
 #randomly select patches, and then compute kmeans for each patches (4)
@@ -124,7 +191,6 @@ def construction_dictionnaire_n_patches(dictionnary,N):
             dico_patches_moyenne[j].append(patches[j])
     print("DEBUT DES K MEANS")
     for i in range(NUMBER_PATCHES):
-        print("DEBUT DES K MOYENNES ",i)
         #renvoie la partition à laquelle appartient chaque element et la liste des centres des partitions
         partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],NUMBER_CLASSES,1,NUMBER_PERIODS)
         dico_patches_moyenne[i] =  moyennes
@@ -140,10 +206,15 @@ def distance(a,b):
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
 
-print(len(elements_aleatoires_moyenne))
-print(len(elements_aleatoires_moyenne[0]))
-print(len(elements_aleatoires_moyenne[0][0]))
-'''
+
+
+#display_image(0,dicos)
+
+#show_image_after(get_patches_from_image(dicos['data'][0])[0])
+
+
+
+
 
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
 dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
@@ -210,8 +281,6 @@ def plot_model(donnees):
     y = []
     s = []
     for i in range(NUMBER_CLASSES):
-        print(len(dicoss[i]))
-    for i in range(NUMBER_CLASSES):
         for element in dicoss[i]:
             val = has_couple(x,y,element,i)
             if(val==-1):
@@ -228,7 +297,7 @@ def plot_model(donnees):
     plt.savefig('ScatterPlot.png')
     plt.show()
 
-#plot_model(nouvelles_donnes)
+plot_model(nouvelles_donnes)
 
 
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
@@ -280,4 +349,4 @@ print("debut des tests")
 print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test_value['labels']))
 print("fin des test")
 
-'''
+
