@@ -19,11 +19,11 @@ NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 2000
+NUMBER_K_MEANS = 1800
 #number of data for training
-NUMBER_TRAIN = 9000
+NUMBER_TRAIN = 8000
 #number of data to evaluate our model
-NUMBER_TEST = 2000
+NUMBER_TEST = 1800
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -240,6 +240,7 @@ def test_model(images,model,nb):
             test_debug[i][j] = 0'''
     resultat = []
     for element in range(nb):
+        print("element : ",element)
         patchs_actuel = get_patches_from_image(data[element])
         buffers = []
         for i in patchs_actuel:
