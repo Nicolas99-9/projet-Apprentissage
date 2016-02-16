@@ -13,17 +13,17 @@ import kmeans2
 from scipy.cluster.vq import whiten
 
 
-NUMBER_CLASSES = 200
+NUMBER_CLASSES = 250
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 1200
+NUMBER_K_MEANS = 2000
 #number of data for training
-NUMBER_TRAIN = 5000
+NUMBER_TRAIN = 9000
 #number of data to evaluate our model
-NUMBER_TEST = 5000
+NUMBER_TEST = 2000
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -51,7 +51,7 @@ EPOQS = 60
 #only four 0
 
 
-#best performances : 22.2% error rate, 200 classes, 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
+#best performances : LINEAR SVM : 22.2% error rate, 200 classes (=> 800 features), 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
