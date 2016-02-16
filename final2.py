@@ -13,27 +13,46 @@ import kmeans2
 from scipy.cluster.vq import whiten
 
 
-
-
-
-NUMBER_CLASSES = 50
+NUMBER_CLASSES = 200
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 100
+NUMBER_K_MEANS = 1200
 #number of data for training
-NUMBER_TRAIN = 300
+NUMBER_TRAIN = 5000
 #number of data to evaluate our model
-NUMBER_TEST = 200
+NUMBER_TEST = 5000
 #number of periods of the perceptron
 EPOQS = 60
 
 
+
+#Parameters to test the algorithm
+'''
+NUMBER_CLASSES = 200
+#number of patches per image
+NUMBER_PATCHES =  4
+#number of perdios for k means function
+NUMBER_PERIODS = 10
+#number of images to use for  the k means function
+NUMBER_K_MEANS = 1200
+#number of data for training
+NUMBER_TRAIN = 5000
+#number of data to evaluate our model
+NUMBER_TEST = 1500
+#number of periods of the perceptron
+EPOQS = 60
+
+'''
 #correct the bug of the kmean function
 #write a svm
 #only four 0
+
+
+#best performances : 22.2% error rate, 200 classes, 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
+
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
@@ -164,6 +183,7 @@ def whitetening(liste):
      to = whiten(liste)
      return list(to)
 
+
 def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
@@ -213,6 +233,11 @@ def distance(a,b):
 def test_model(images,model,nb):
     labels = images['labels']
     data = images['data']
+    '''test_debug = {}
+    for i in range(4):
+        test_debug[i] = {}
+        for j in range(NUMBER_CLASSES):
+            test_debug[i][j] = 0'''
     resultat = []
     for element in range(nb):
         patchs_actuel = get_patches_from_image(data[element])
@@ -228,12 +253,20 @@ def test_model(images,model,nb):
                     var = varss
                     classe = j
                     #print("j : ",j,varss,"classe :",classe)
-            tableau  = [0 for i in range(NUMBER_CLASSES)]
+            tableau  = [0 for p in range(NUMBER_CLASSES)]
             tableau[classe] = 1 
+            #test_debug[i][classe]+=1
             #print(classe," vraie lael : ",labels[element],tableau)
             buffers = buffers + tableau
         phrase = (element,buffers)
         resultat.append(phrase)
+    '''for element in test_debug:
+        nb = sum(test_debug[element].values())
+        #print("nb",nb,test_debug[element].values())
+        for key in test_debug[element]:
+            test_debug[element][key] = test_debug[element][key]/float(nb)
+        test_debug[element] = sorted(test_debug[element].items(), key=operator.itemgetter(1))
+    pprint(test_debug)  '''    
     return resultat
 
 
@@ -242,13 +275,6 @@ def test_model(images,model,nb):
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
 
-
-
-
-
-
-for i in nouvelles_donnes:
-    print(len(i),i)
 
 
 print("Generation terminee")
@@ -266,7 +292,7 @@ def has_couple(x,y,ex, ey):
             return i
     return -1
 
-def plot_model(donnees):
+def plot_model(donnees,filename,dicos_test):
     labels =  dicos_test['labels'] 
     dicoss = {}
     for i in range(NUMBER_CLASSES):
@@ -284,18 +310,87 @@ def plot_model(donnees):
                 y.append(i)
                 s.append(10)
             else:
-                s[val] = s[val]+15
+                s[val] = s[val]+10
     plt.scatter(x,y,s)
     print(len(donnees))
     plt.title('Repartition des points en fonction de la classe')
     plt.xlabel('valeurs des points')
     plt.ylabel('classe')
-    plt.savefig('ScatterPlot.png')
+    plt.savefig(filename)
     plt.show()
 
-#plot_model(nouvelles_donnes)
+#plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
+
+pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
+test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
+
+#--------------------------------K nearest neighbours----------------------------------------------
 
 
+from sklearn import neighbors
+
+def learn_k_nearest(data_train,data_test):
+    donnes = [element for etiquette,element in data_train]
+    eti = [dicos['labels'][etiquette] for etiquette,element in data_train]
+    labels  = pour_tests['labels']
+    #partitions,moyennes = kmeans2.kmeans(donnes,10,1,50)
+    #estimation = [-1 for i in range(10)]
+    #counter = {}
+    knn = neighbors.KNeighborsClassifier()
+    print("debut apprentissage")
+    knn.fit(np.array(donnes), np.array(eti))
+    print("fin apprentissage")
+    to_predict = [element for etiquette,element in data_test]
+    real_label = [pour_tests['labels'][etiquette] for etiquette,element in data_test]
+    print("debut predictions")
+    predictions = knn.predict(np.array(to_predict))
+    print("fin predictions")
+    taux_erreur = 0.0
+    for i in range(len(predictions)):
+        if(predictions[i]!=real_label[i]):
+            taux_erreur +=1.0
+    print("taux d'erreurs ", taux_erreur/float(len(data_train)))
+
+#moyennes = learn_k_nearest(nouvelles_donnes,test_data)
+
+
+#------------------------- SVM LEARNING-------------------------------------------------------
+
+from sklearn import svm
+
+def learn_SVM(data_train,data_test):
+    donnes = [element for etiquette,element in data_train]
+    eti = [dicos['labels'][etiquette] for etiquette,element in data_train]
+    labels  = pour_tests['labels']
+    #linear
+    svc = svm.SVC(kernel='linear')
+    print("debut apprentissage linear")
+    svc.fit(np.array(donnes), np.array(eti))
+    print("fin apprentissage linear")
+    to_predict = [element for etiquette,element in data_test]
+    real_label = [pour_tests['labels'][etiquette] for etiquette,element in data_test]
+    print("debut predictions")
+    predictions = svc.predict(np.array(to_predict))
+    print("fin predictions")
+    taux_erreur = 0.0
+    for i in range(len(predictions)):
+        if(predictions[i]!=real_label[i]):
+            taux_erreur +=1.0
+    svc2 = svm.SVC(kernel='poly')
+    print("debut apprentissage poly")
+    svc2.fit(np.array(donnes), np.array(eti))
+    print("fin apprentissage poly")
+    print("debut predictions poly")
+    predictions2 = svc2.predict(np.array(to_predict))
+    print("fin predictions poly")
+    taux_erreur2 = 0.0
+    for i in range(len(predictions2)):
+        if(predictions2[i]!=real_label[i]):
+            taux_erreur2 +=1.0
+    print("taux d'erreurs en lineaire ", taux_erreur/float(len(data_train)))
+    print("taux d'erreurs en polynomiale ", taux_erreur2/float(len(data_train)))
+
+moyennes = learn_SVM(nouvelles_donnes,test_data)
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
 
 
@@ -325,17 +420,18 @@ def learn(train,nb,poids,labels):
     return poids
 
 
-def test(corpus,poids,labels):
+def test(corpus,poids,labels,dicos):
     erreur = 0.0
     for etiquette,element in corpus:
         vm = classify(element,poids)
         #print(vm , "vraie valeur : ",labels[etiquette])
+        display_image(etiquette,dicos)
         if not vm == labels[etiquette]:
             erreur +=1.0
     return erreur/len(corpus)
 
 
-
+'''
 print("Debut du perceptron")
 poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])
 print("Valeur des poids : ")
@@ -345,6 +441,7 @@ print("debut des tests")
 
 pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
-
-print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
+plot_model(test_data,'ScatterPlot2.png',pour_tests)
+print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels'],pour_tests))
 print("fin des test")
+'''
