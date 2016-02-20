@@ -13,6 +13,31 @@ import kmeans2
 from scipy.cluster.vq import whiten
 
 
+
+
+
+NUMBER_CLASSES = 50
+#number of patches per image
+NUMBER_PATCHES =  4
+#number of perdios for k means function
+NUMBER_PERIODS = 10
+#number of images to use for  the k means function
+NUMBER_K_MEANS = 800
+#number of data for training
+NUMBER_TRAIN = 1000
+#number of data to evaluate our model
+NUMBER_TEST = 200
+#number of periods of the perceptron
+EPOQS = 60
+
+
+
+
+
+
+#Parameters to test the algorithm
+
+'''
 NUMBER_CLASSES = 250
 #number of patches per image
 NUMBER_PATCHES =  4
@@ -26,10 +51,9 @@ NUMBER_TRAIN = 8000
 NUMBER_TEST = 1800
 #number of periods of the perceptron
 EPOQS = 60
+'''
 
 
-
-#Parameters to test the algorithm
 '''
 NUMBER_CLASSES = 200
 #number of patches per image
@@ -52,6 +76,8 @@ EPOQS = 60
 
 
 #best performances : LINEAR SVM : 22.2% error rate, 200 classes (=> 800 features), 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
+
+# LINEAR SVM  : 18% error rate , 250 classes (1000 features), 1800 centroids, 8000 training data, 1800 tests
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
@@ -120,6 +146,11 @@ def normalized(ma_liste):
         ma_liste[i] = (((ma_liste[i])-means)/var) 
     return ma_liste
 
+def normalizedV2(a, axis=-1, order=2):
+    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
+    l2[l2==0] = 1
+    return a / np.expand_dims(l2, axis)
+
 
 #cut an image into patches
 
@@ -158,31 +189,11 @@ def get_patches_from_image(image):
             tmp =  0
     return result
 
-'''
-#randomly select patches, and then compute kmeans for each patches (4)
-def construction_dictionnaire_n_patches(dictionnary,N):
-    dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
-    dico_patches_moyenne = {}
-    for i in range(NUMBER_PATCHES):
-        dico_patches_moyenne[i] = []
-    for i in range(len(dico_random)):
-        patches =  get_patches_from_image(dico_random[i])
-        for j in range(NUMBER_PATCHES):
-            dico_patches_moyenne[j].append(patches[j])
-    print("DEBUT DES K MEANS")
-    for i in range(NUMBER_PATCHES):
-        #renvoie la partition à laquelle appartient chaque element et la liste des centres des partitions
-        partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],NUMBER_CLASSES,1,NUMBER_PERIODS)
-        dico_patches_moyenne[i] =  moyennes
-    print("-----------------------------------------")
-    return dico_patches_moyenne
 
-'''
-
-def whitetening(liste):
-     to = whiten(liste)
-     return list(to)
-
+def whiteningV2(liste):
+    tmp = np.array(liste)
+    std_liste = np.std(tmp,axis=0)
+    return list(tmp / std_liste)
 
 def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
@@ -190,7 +201,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     for i in range(len(dico_random)):
         patches =  get_patches_from_image(dico_random[i])
         for j in range(NUMBER_PATCHES):
-            mes_patches.append(whitetening(normalized(patches[j])))
+            mes_patches.append(whiteningV2(normalized(patches[j])))
     for i in range(len(mes_patches)):
         if(len(mes_patches[i]) != 768):
             print("Nombre de patchs extraits (4 par image) ",len(mes_patches))
@@ -260,14 +271,7 @@ def test_model(images,model,nb):
             #print(classe," vraie lael : ",labels[element],tableau)
             buffers = buffers + tableau
         phrase = (element,buffers)
-        resultat.append(phrase)
-    '''for element in test_debug:
-        nb = sum(test_debug[element].values())
-        #print("nb",nb,test_debug[element].values())
-        for key in test_debug[element]:
-            test_debug[element][key] = test_debug[element][key]/float(nb)
-        test_debug[element] = sorted(test_debug[element].items(), key=operator.itemgetter(1))
-    pprint(test_debug)  '''    
+        resultat.append(phrase)  
     return resultat
 
 
