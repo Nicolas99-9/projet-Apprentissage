@@ -6,9 +6,6 @@ import numpy as np
 from pprint import pprint
 import operator
 
-data = [[2.0, 3.0],  [3.0, 1.0],  [4.0, 2.0], [11.0, 5.0],
-        [12.0, 4.0], [12.0, 6.0], [7.0, 5.0], [8.0, 4.0],
-        [8.0, 6.0]]
         
 def choose_initiale(data, k) :
     list_initiale = []
@@ -27,14 +24,8 @@ def sortes(ma_list):
 def distance (x,y) :
 	return np.linalg.norm(np.array(x) - np.array(y))
 
-def moyenne_element(liste,k,plop):
-    taille = len(liste)
-    finale = [0 for i in range(plop)]
-    for element in liste:
-        finale = np.add(finale,element)
-    for i in range(len(finale)):
-        finale[i] = np.divide(finale[i],taille)
-    return finale
+def moyenne_element(liste):
+    return np.mean(liste,axis=0)
 
 def kmeans(data, k, t, maxiter):
     points = choose_initiale(data, k)
@@ -67,7 +58,7 @@ def kmeans(data, k, t, maxiter):
             dict_result[tuple(element)] = cle
             classes[cle].append(element)
         for classe in range(k):
-            finale[classe] = moyenne_element(classes[classe],k,plop)
+            finale[classe] = moyenne_element(classes[classe])
         taux_Erreur = 0.0
         for element in data:
             taux_Erreur += distance(finale[dict_result[tuple(element)]],element)

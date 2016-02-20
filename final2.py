@@ -22,7 +22,7 @@ NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 800
+NUMBER_K_MEANS = 500
 #number of data for training
 NUMBER_TRAIN = 1000
 #number of data to evaluate our model
@@ -78,6 +78,8 @@ EPOQS = 60
 #best performances : LINEAR SVM : 22.2% error rate, 200 classes (=> 800 features), 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
 
 # LINEAR SVM  : 18% error rate , 250 classes (1000 features), 1800 centroids, 8000 training data, 1800 tests
+
+#profiling :python -m cProfile final2.py
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
@@ -251,7 +253,7 @@ def test_model(images,model,nb):
             test_debug[i][j] = 0'''
     resultat = []
     for element in range(nb):
-        print("element : ",element)
+        #print("element : ",element)
         patchs_actuel = get_patches_from_image(data[element])
         buffers = []
         for i in patchs_actuel:
@@ -280,7 +282,7 @@ def test_model(images,model,nb):
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
 
-
+'''
 
 print("Generation terminee")
 
@@ -435,7 +437,7 @@ def test(corpus,poids,labels,dicos):
             erreur +=1.0
     return erreur/len(corpus)
 
-
+'''
 '''
 print("Debut du perceptron")
 poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])

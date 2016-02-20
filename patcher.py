@@ -30,7 +30,6 @@ class Patcher:
         patches= []
         for i in range(self.number_patches):
             for j in xrange(0,self.number_patches):
-                print(i*self.sizeSquare,i*self.sizeSquare+self.sizeSquare,j*self.sizeSquare*3,j*self.sizeSquare*3+self.sizeSquare*3)
                 tmp = after[i*self.sizeSquare:i*self.sizeSquare+self.sizeSquare,j*self.sizeSquare*3:j*self.sizeSquare*3+self.sizeSquare*3]
                 patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
         return list(patches)
@@ -46,7 +45,6 @@ class Patcher:
             to_add.append([tmp[j]/255.0  ,tmp[j+1]/255.0  ,tmp[j+2]/255.0 ])
             count +=1
             if(count%(self.sizeSquare)==0):
-                print(j)
                 to_display.append(to_add)
                 to_add = [] 
                 count =0
@@ -58,7 +56,7 @@ class Patcher:
         for i in range(20):
             print("images : ",images[i],images[i+1024],images[i+2048] , " patch : ", patches[0][i],patches[0][i+1],patches[0][i+2])
 
-    def show_image(img):
+    def show_image(self,img):
         to_display = []
         count = 0
         tmp = []
@@ -75,7 +73,7 @@ class Patcher:
 
 
 '''
-patcher = Patcher(16,32)
+patcher = Patcher(8,32)
 patches = patcher.get_patches_from_image(dicos['data'][25])
 show_image(dicos['data'][25])
 patcher.show_patches(patches[0])
