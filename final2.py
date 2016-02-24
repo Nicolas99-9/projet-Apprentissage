@@ -15,7 +15,6 @@ from patcher import Patcher
 
 
 
-
 NUMBER_CLASSES = 50
 #number of patches per image
 NUMBER_PATCHES =  4
@@ -29,7 +28,6 @@ NUMBER_TRAIN = 1000
 NUMBER_TEST = 200
 #number of periods of the perceptron
 EPOQS = 60
-
 
 
 
@@ -68,8 +66,8 @@ NUMBER_TRAIN = 5000
 NUMBER_TEST = 1500
 #number of periods of the perceptron
 EPOQS = 60
-
 '''
+
 #correct the bug of the kmean function
 #write a svm
 #only four 0
@@ -212,7 +210,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
         patches =  patcher.get_patches_from_image(dico_random[i])
         for j in range(len(patches)):
             mes_patches.append(whiteningV2(normalized(patches[j].astype(float))))
-    random.seed(125)
+    random.seed(45)
     random.shuffle(mes_patches)
     partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,1,NUMBER_PERIODS)
     return moyennes
