@@ -63,6 +63,7 @@ def kmeans(data, k, t, maxiter):
         for element in data:
             taux_Erreur += distance(finale[dict_result[tuple(element)]],element)
         error  = abs(taux_Erreur-error)
+        print("taux d'error",error)
     tab1 = []
     for element in dict_result:
         tab1.append((list(element),dict_result[element]))

@@ -11,7 +11,7 @@ import operator
 import matplotlib.pyplot as plt
 import kmeans2
 from scipy.cluster.vq import whiten
-
+from patcher import Patcher
 
 
 
@@ -20,7 +20,7 @@ NUMBER_CLASSES = 50
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
-NUMBER_PERIODS = 10
+NUMBER_PERIODS = 11
 #number of images to use for  the k means function
 NUMBER_K_MEANS = 500
 #number of data for training
@@ -81,9 +81,15 @@ EPOQS = 60
 
 #profiling :python -m cProfile final2.py
 
+'''
+("taux d'erreurs en lineaire ", 0.149)
+("taux d'erreurs en polynomiale ", 0.184)
+'''
+
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
+patcher = Patcher(16,32)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -144,6 +150,8 @@ def unpickle(file):
 def normalized(ma_liste):
     means = np.mean(ma_liste)
     var = np.std(ma_liste)
+    #print("mean",means)
+    #print("var",var)
     for i in range(len(ma_liste)):
         ma_liste[i] = (((ma_liste[i])-means)/var) 
     return ma_liste
@@ -201,12 +209,9 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  get_patches_from_image(dico_random[i])
-        for j in range(NUMBER_PATCHES):
-            mes_patches.append(whiteningV2(normalized(patches[j])))
-    for i in range(len(mes_patches)):
-        if(len(mes_patches[i]) != 768):
-            print("Nombre de patchs extraits (4 par image) ",len(mes_patches))
+        patches =  patcher.get_patches_from_image(dico_random[i])
+        for j in range(len(patches)):
+            mes_patches.append(whiteningV2(normalized(patches[j].astype(float))))
     random.seed(125)
     random.shuffle(mes_patches)
     partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,1,NUMBER_PERIODS)
@@ -219,25 +224,11 @@ elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_
 
 
 
-#display_image(0,dicos)
-'''
-show_image_after(get_patches_from_image(dicos['data'][0])[0])
-show_image_after(get_patches_from_image(dicos['data'][0])[1])
-show_image_after(get_patches_from_image(dicos['data'][0])[2])
-show_image_after(get_patches_from_image(dicos['data'][0])[3])
 
-
-show_image_after(normalized(get_patches_from_image(dicos['data'][0])[0]))
-show_image_after(normalized(get_patches_from_image(dicos['data'][0])[1]))
-show_image_after(normalized(get_patches_from_image(dicos['data'][0])[2]))
-show_image_after(normalized(get_patches_from_image(dicos['data'][0])[3]))
-'''
-
-
-
-
-#dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
+#dicos_test_value = unpickle("cifar-10-batches, axis=0-py/data_batch_3")
 #---------------------------------------FEATURES GENERATION--------------------------------
+
+
 
 #return the eucldian distance between two vectors
 def distance(a,b):
@@ -246,17 +237,13 @@ def distance(a,b):
 def test_model(images,model,nb):
     labels = images['labels']
     data = images['data']
-    '''test_debug = {}
-    for i in range(4):
-        test_debug[i] = {}
-        for j in range(NUMBER_CLASSES):
-            test_debug[i][j] = 0'''
     resultat = []
     for element in range(nb):
         #print("element : ",element)
-        patchs_actuel = get_patches_from_image(data[element])
+        patchs_actuel = patcher.get_patches_from_image(data[element])
         buffers = []
-        for i in patchs_actuel:
+
+        for i in range(len(patchs_actuel)):
             #each patch
             petit = []
             var = 9999999  #distance max
@@ -269,20 +256,14 @@ def test_model(images,model,nb):
                     #print("j : ",j,varss,"classe :",classe)
             tableau  = [0 for p in range(NUMBER_CLASSES)]
             tableau[classe] = 1 
-            #test_debug[i][classe]+=1
-            #print(classe," vraie lael : ",labels[element],tableau)
             buffers = buffers + tableau
         phrase = (element,buffers)
         resultat.append(phrase)  
     return resultat
 
 
-
-
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
-
-'''
 
 print("Generation terminee")
 
@@ -437,7 +418,7 @@ def test(corpus,poids,labels,dicos):
             erreur +=1.0
     return erreur/len(corpus)
 
-'''
+
 '''
 print("Debut du perceptron")
 poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])

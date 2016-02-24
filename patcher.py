@@ -72,9 +72,3 @@ class Patcher:
         plt.show()
 
 
-'''
-patcher = Patcher(8,32)
-patches = patcher.get_patches_from_image(dicos['data'][25])
-show_image(dicos['data'][25])
-patcher.show_patches(patches[0])
-'''
