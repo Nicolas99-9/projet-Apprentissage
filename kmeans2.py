@@ -5,7 +5,7 @@ from random import choice
 import numpy as np
 from pprint import pprint
 import operator
-
+import matplotlib.pyplot as plt
         
 def choose_initiale(data, k) :
     list_initiale = []
@@ -63,17 +63,28 @@ def kmeans(data, k, t, maxiter):
         for element in data:
             taux_Erreur += distance(finale[dict_result[tuple(element)]],element)
         error  = abs(taux_Erreur-error)
-        print("taux d'error",error)
     tab1 = []
     for element in dict_result:
         tab1.append((list(element),dict_result[element]))
     tab2 = []
     for element in finale:
         tab2.append((list(finale[element])))
-    print("tab 2 ",len(tab2))
-    return 	(tab1,tab2)
+    return (tab1,tab2)
 		
 
 #res = kmeans(data, 2, 1, 12)
 
+'''
+tabs = [[1,2],[0,4],[2,5],[5,5],[6,4],[0,2],[1,1]]
+print(kmeans(tabs,3,1,50))
 
+
+X = [i[0] for i in tabs]
+Y = [i[1] for i in tabs]
+
+plt.scatter(X,Y)
+plt.title('Repartition des points en fonction de la classe')
+plt.xlabel('valeurs des points')
+plt.ylabel('classe')
+plt.show()
+'''

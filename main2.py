@@ -152,7 +152,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     for i in range(4):
         print("DEBUT DES K MOYENNES ",i)
         #renvoie la partition à laquelle appartient chaque element et la liste des centres des partitions
-        partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],10,5,15)
+        partitions,moyennes = kmeans.kmeans(dico_patches_moyenne[i],10,1,20)
         dico_patches_moyenne[i] =  moyennes
     print("-----------------------------------------")
     return dico_patches_moyenne
@@ -161,7 +161,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/42)
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data'])/10)
 
 #elements_aleatoires_moyenne[0] to get the K means of the top left
 #elements_aleatoires_moyenne[0][0] => get the first average value of the top left patch
@@ -192,14 +192,15 @@ def test_model(images,model,nb):
             var = 9999999  #distance max
             classe = -1
             for j in range(NUMBER_CLASSES):
-                varss = distance(np.array(model[i][j]),np.array(patchs_actuel[i]))
-                if(varss<var):
-                    var = varss
-                    classe = j
+                for w in range(4):
+                    varss = distance(np.array(model[w][j]),np.array(patchs_actuel[i]))
+                    if(varss<var):
+                        var = varss
+                        classe = j
                     #print("j : ",j,varss,"classe :",classe)
             tableau  = [0 for i in range(NUMBER_CLASSES)]
             tableau[classe] = 1 
-            print(classe," vraie lael : ",labels[element],tableau)
+            #print(classe," vraie lael : ",labels[element],tableau)
             buffers = buffers + tableau
         phrase = (element,buffers)
         resultat.append(phrase)
@@ -211,7 +212,7 @@ def test_model(images,model,nb):
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,200)
 
-#nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,1000)
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,200)
 print("Generation terminee")
 
 
@@ -290,9 +291,9 @@ def learn(train,nb,poids,labels):
    
 #poids = [[0 for i in range(
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,3500,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,200,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
 
-'''
+
 print("Valeur des poids : ")
 print(poids)
 print("Fin du perceptron")
@@ -301,13 +302,13 @@ def test(corpus,poids,labels):
     erreur = 0.0
     for etiquette,element in corpus:
         vm = classify(element,poids)
-        print(vm , "vraie valeur : ",labels[etiquette])
+        #print(vm , "vraie valeur : ",labels[etiquette])
         if not vm == labels[etiquette]:
             erreur +=1.0
     return erreur/len(corpus)
 
 print("debut des tests")
-print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test_value['labels']))
+print("Taux d'erreur : ",test(nouvelles_donnes,poids,nouvelles_donnes['labels']))
 print("fin des test")
 
-'''
+
