@@ -22,9 +22,9 @@ NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 11
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 9000
+NUMBER_K_MEANS = 9500
 #number of data for training
-NUMBER_TRAIN = 9000
+NUMBER_TRAIN = 9500
 #number of data to evaluate our model
 NUMBER_TEST = 1500
 #number of periods of the perceptron
@@ -90,7 +90,7 @@ EPOQS = 60
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(16,32)
+patcher = Patcher(8,32)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -253,10 +253,11 @@ def construction_dictionnaire_n_patches(dictionnary,N):
 
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-
-
-
-
+print("taille des moyennes :",elements_aleatoires_moyenne)
+'''
+for i in range(15):
+    patcher.show_patches(elements_aleatoires_moyenne[i])
+'''
 #dicos_test_value = unpickle("cifar-10-batches, axis=0-py/data_batch_3")
 #---------------------------------------FEATURES GENERATION--------------------------------
 
@@ -273,6 +274,8 @@ def test_model(images,model,nb):
     for element in range(nb):
         #print("element : ",element)
         patchs_actuel = patcher.get_patches_from_image(data[element])
+        for i in range(len(patchs_actuel)):
+            patchs_actuel[i]  = whiteningV2(np.array(patchs_actuel[i]))
         buffers = []
 
         for i in range(len(patchs_actuel)):
@@ -298,6 +301,7 @@ print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
 
 print("Generation terminee")
+
 
 
 
