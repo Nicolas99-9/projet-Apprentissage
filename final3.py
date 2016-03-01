@@ -23,9 +23,9 @@ NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 11
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 9500
+NUMBER_K_MEANS = 28000
 #number of data for training
-NUMBER_TRAIN = 9500
+NUMBER_TRAIN = 28000
 #number of data to evaluate our model
 NUMBER_TEST = 1500
 #number of periods of the perceptron
@@ -262,11 +262,13 @@ def load_element(filename):
     return b
 
 
-dicos = unpickle("cifar-10-batches-py/data_batch_2")
+dicos = unpickle("cifar-10-batches-py/data_batch_1")
+dicos = dicos + unpickle("cifar-10-batches-py/data_batch_2")
+dicos = dicos + unpickle("cifar-10-batches-py/data_batch_3")
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
-save_element("cifar-10-batches-py-dico2",elements_aleatoires_moyenne)
+save_element("cifar-10-batches-py-dicofull",elements_aleatoires_moyenne)
 '''
 for i in range(15):
     patcher.show_patches(elements_aleatoires_moyenne[i])
