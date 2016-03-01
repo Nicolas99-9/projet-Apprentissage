@@ -17,7 +17,7 @@ import pickle
 
 
 
-NUMBER_CLASSES = 600
+NUMBER_CLASSES = 700
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
@@ -262,9 +262,21 @@ def load_element(filename):
     return b
 
 
-dicos = unpickle("cifar-10-batches-py/data_batch_1")
-dicos = dicos + unpickle("cifar-10-batches-py/data_batch_2")
-dicos = dicos + unpickle("cifar-10-batches-py/data_batch_3")
+def merge_dicos(dicos1 , dicos2 , dicos3):
+    print(dicos1['data'],dicos2['data'])
+    for k in dicos2.keys():
+        if(k != "data"):
+            print("before " , len(dicos1[k]))
+            dicos1[k] = dicos1[k] + dicos2[k] + dicos3[k]
+            print( k ,"after " , len(dicos1[k]))
+        else:
+            dicos1[k] = np.array(list(dicos1[k]) + list(dicos2[k]) + list(dicos3[k]))
+    return dicos1
+
+dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_3"))
+
+
+print("longueur de dicos  2222:",len(dicos['data']))
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
