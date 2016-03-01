@@ -13,6 +13,7 @@ import kmeans2
 from scipy.cluster.vq import whiten
 from patcher import Patcher
 from sklearn import cluster
+import pickle
 
 
 
@@ -243,17 +244,29 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     random.seed(45)
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
-    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 3 , verbose= True)
+    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 3 , verbose= True, max_iter = 100)
     kmeans.fit(mes_patches)
     centroids = kmeans.cluster_centers_
     #debug_image(partitions)
     return centroids
 
 
+def save_element(filename,dico):
+    with open(filename, 'wb') as handle:
+        pickle.dump(dico, handle)
 
-dicos = unpickle("cifar-10-batches-py/data_batch_1")
+
+def load_element(filename):
+    with open(filename, 'rb') as handle:
+        b = pickle.load(handle)
+    return b
+
+
+dicos = unpickle("cifar-10-batches-py/data_batch_2")
 elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
 print("taille des moyennes :",elements_aleatoires_moyenne)
+
+save_element("cifar-10-batches-py-dico2",elements_aleatoires_moyenne)
 '''
 for i in range(15):
     patcher.show_patches(elements_aleatoires_moyenne[i])
