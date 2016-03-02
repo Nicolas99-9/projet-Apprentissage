@@ -277,10 +277,17 @@ dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifa
 
 
 print("longueur de dicos  2222:",len(dicos['data']))
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+#elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
-save_element("cifar-10-batches-py-dicofull",elements_aleatoires_moyenne)
+
+#save the clusters extracted with the kmeans algorithm
+#save_element("cifar-10-batches-py-dicofull",elements_aleatoires_moyenne)
+
+
+
+
 '''
 for i in range(15):
     patcher.show_patches(elements_aleatoires_moyenne[i])
@@ -299,6 +306,7 @@ def test_model(images,model,nb):
     data = images['data']
     resultat = []
     for element in range(nb):
+        print(element)
         #print("element : ",element)
         patchs_actuel = patcher.get_patches_from_image(data[element])
         for i in range(len(patchs_actuel)):
@@ -427,6 +435,7 @@ def learn_SVM(data_train,data_test):
     for i in range(len(predictions)):
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
+    print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
     svc2 = svm.SVC(kernel='poly')
     print("debut apprentissage poly")
     svc2.fit(np.array(donnes), np.array(eti))
