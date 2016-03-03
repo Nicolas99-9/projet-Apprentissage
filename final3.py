@@ -380,7 +380,7 @@ def plot_model(donnees,filename,dicos_test):
 
  #plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
 
-pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
+pour_tests = unpickle("cifar-10-batches-py/data_batch_4")
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
 
 #--------------------------------K nearest neighbours----------------------------------------------
