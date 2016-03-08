@@ -16,7 +16,7 @@ from sklearn import cluster
 import pickle
 
 
-
+'''
 NUMBER_CLASSES = 700
 #number of patches per image
 NUMBER_PATCHES =  4
@@ -30,7 +30,7 @@ NUMBER_TRAIN = 28000
 NUMBER_TEST = 1500
 #number of periods of the perceptron
 EPOQS = 60
-
+'''
 
 
 
@@ -57,41 +57,47 @@ EPOQS = 60
 
 
 '''
-NUMBER_CLASSES = 200
+NUMBER_CLASSES = 150
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 1200
+NUMBER_K_MEANS = 5000
 #number of data for training
 NUMBER_TRAIN = 5000
 #number of data to evaluate our model
-NUMBER_TEST = 1500
+NUMBER_TEST = 800
 #number of periods of the perceptron
 EPOQS = 60
 '''
 
-#correct the bug of the kmean function
-#write a svm
-#only four 0
 
 
-#best performances : LINEAR SVM : 22.2% error rate, 200 classes (=> 800 features), 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
+NUMBER_CLASSES = 300
+#number of patches per image
+NUMBER_PATCHES =  4
+#number of perdios for k means function
+NUMBER_PERIODS = 10
+#number of images to use for  the k means function
+NUMBER_K_MEANS = 9000
+#number of data for training
+NUMBER_TRAIN = 9000
+#number of data to evaluate our model
+NUMBER_TEST = 1500
+#number of periods of the perceptron
+EPOQS = 60
 
-# LINEAR SVM  : 18% error rate , 250 classes (1000 features), 1800 centroids, 8000 training data, 1800 tests
+
 
 #profiling :python -m cProfile final2.py
 
-'''
-("taux d'erreurs en lineaire ", 0.149)
-("taux d'erreurs en polynomiale ", 0.184)
-'''
+
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(8,32)
+patcher = Patcher(16,32)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -202,10 +208,15 @@ def get_patches_from_image(image):
     return result
 
 
+
+#problem
 def whiteningV2(liste):
+    return liste
+    '''
     tmp = np.array(liste)
     std_liste = np.std(tmp,axis=0)
     return list(tmp / std_liste)
+    '''
 
 
 def debug_image(partitions):
@@ -233,9 +244,9 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  patcher.get_patches_from_image(dico_random[i])
+        patches =  patcher.get_patches_from_image_reduced(dico_random[i])
         for j in range(len(patches)):
-            tmp = whiteningV2(normalized(patches[j].astype(float)))
+            tmp = whiteningV2(normalized(np.array(patches[j]).astype(float)))
             if(np.isnan(tmp).any()):
                 print("NAN ")
                 mes_patches.append(np.zeros(len(tmp)))
@@ -244,7 +255,8 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     random.seed(45)
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
-    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 3 , verbose= True, max_iter = 100)
+    #n_init = 3
+    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 100)
     kmeans.fit(mes_patches)
     centroids = kmeans.cluster_centers_
     #debug_image(partitions)
@@ -275,10 +287,24 @@ def merge_dicos(dicos1 , dicos2 , dicos3):
 
 dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_3"))
 
+#keep only two classes
+'''
+new_dicos = {}
+new_dicos['labels'] = []
+new_dicos['data'] = []
+for i in range(len(dicos['data'])):
+    if(dicos['labels'][i]==0 or dicos['labels'][i]==5):
+        new_dicos['labels'].append( dicos['labels'][i])
+        new_dicos['data'].append( dicos['data'][i])
+dicos = new_dicos
+print(new_dicos['labels'])
 
+
+print("nombre d elements apres filtrage",len(new_dicos['data']))
+'''
 print("longueur de dicos  2222:",len(dicos['data']))
-#elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+#elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
 
@@ -308,9 +334,9 @@ def test_model(images,model,nb):
     for element in range(nb):
         print(element)
         #print("element : ",element)
-        patchs_actuel = patcher.get_patches_from_image(data[element])
+        patchs_actuel = patcher.get_patches_from_image_reduced(data[element])
         for i in range(len(patchs_actuel)):
-            patchs_actuel[i]  = whiteningV2(np.array(patchs_actuel[i]))
+            patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]))
         buffers = []
 
         for i in range(len(patchs_actuel)):
@@ -381,6 +407,18 @@ def plot_model(donnees,filename,dicos_test):
  #plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
 
 pour_tests = unpickle("cifar-10-batches-py/data_batch_4")
+#keep only two classes
+''''
+new_dicos = {}
+new_dicos['labels'] = []
+new_dicos['data'] = []
+for i in range(len(pour_tests['data'])):
+    if(pour_tests['labels'][i]==0 or pour_tests['labels'][i]==5):
+        new_dicos['labels'].append( pour_tests['labels'][i])
+        new_dicos['data'].append( pour_tests['data'][i])
+pour_tests = new_dicos
+'''
+
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
 
 #--------------------------------K nearest neighbours----------------------------------------------
@@ -423,8 +461,9 @@ def learn_SVM(data_train,data_test):
     labels  = pour_tests['labels']
     #linear
     svc = svm.SVC(kernel='linear')
-    print("debut apprentissage linear")
+    print("debut apprentissage linear score : ")
     svc.fit(np.array(donnes), np.array(eti))
+    print("score d'apprentissage : ",svc.score(np.array(donnes), np.array(eti)))
     print("fin apprentissage linear")
     to_predict = [element for etiquette,element in data_test]
     real_label = [pour_tests['labels'][etiquette] for etiquette,element in data_test]
