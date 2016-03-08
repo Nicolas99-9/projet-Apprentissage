@@ -16,7 +16,7 @@ from sklearn import cluster
 import pickle
 
 
-
+'''
 NUMBER_CLASSES = 700
 #number of patches per image
 NUMBER_PATCHES =  4
@@ -30,7 +30,7 @@ NUMBER_TRAIN = 28000
 NUMBER_TEST = 1500
 #number of periods of the perceptron
 EPOQS = 60
-
+'''
 
 
 
@@ -56,21 +56,21 @@ EPOQS = 60
 '''
 
 
-'''
+
 NUMBER_CLASSES = 200
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 1200
+NUMBER_K_MEANS = 5000
 #number of data for training
-NUMBER_TRAIN = 5000
+NUMBER_TRAIN = 8000
 #number of data to evaluate our model
 NUMBER_TEST = 1500
 #number of periods of the perceptron
 EPOQS = 60
-'''
+
 
 #correct the bug of the kmean function
 #write a svm
@@ -202,10 +202,15 @@ def get_patches_from_image(image):
     return result
 
 
+
+#problem
 def whiteningV2(liste):
+    return liste
+    '''
     tmp = np.array(liste)
     std_liste = np.std(tmp,axis=0)
     return list(tmp / std_liste)
+    '''
 
 
 def debug_image(partitions):
@@ -275,10 +280,24 @@ def merge_dicos(dicos1 , dicos2 , dicos3):
 
 dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_3"))
 
+#keep only two classes
+'''
+new_dicos = {}
+new_dicos['labels'] = []
+new_dicos['data'] = []
+for i in range(len(dicos['data'])):
+    if(dicos['labels'][i]==0 or dicos['labels'][i]==5):
+        new_dicos['labels'].append( dicos['labels'][i])
+        new_dicos['data'].append( dicos['data'][i])
+dicos = new_dicos
+print(new_dicos['labels'])
 
+
+print("nombre d elements apres filtrage",len(new_dicos['data']))
+'''
 print("longueur de dicos  2222:",len(dicos['data']))
-#elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+#elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
 
@@ -381,6 +400,18 @@ def plot_model(donnees,filename,dicos_test):
  #plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
 
 pour_tests = unpickle("cifar-10-batches-py/data_batch_4")
+#keep only two classes
+''''
+new_dicos = {}
+new_dicos['labels'] = []
+new_dicos['data'] = []
+for i in range(len(pour_tests['data'])):
+    if(pour_tests['labels'][i]==0 or pour_tests['labels'][i]==5):
+        new_dicos['labels'].append( pour_tests['labels'][i])
+        new_dicos['data'].append( pour_tests['data'][i])
+pour_tests = new_dicos
+'''
+print(new_dicos['labels'])
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
 
 #--------------------------------K nearest neighbours----------------------------------------------
@@ -423,8 +454,9 @@ def learn_SVM(data_train,data_test):
     labels  = pour_tests['labels']
     #linear
     svc = svm.SVC(kernel='linear')
-    print("debut apprentissage linear")
+    print("debut apprentissage linear score : ")
     svc.fit(np.array(donnes), np.array(eti))
+    print("score d'apprentissage : ",svc.score(np.array(donnes), np.array(eti)))
     print("fin apprentissage linear")
     to_predict = [element for etiquette,element in data_test]
     real_label = [pour_tests['labels'][etiquette] for etiquette,element in data_test]

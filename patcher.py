@@ -9,6 +9,7 @@ class Patcher:
         self.imageSize = imageSize
         self.sizeSquare = size_patch
         self.number_patches = (imageSize/size_patch)
+        self.generate_elements()
 
     def show_informations(self):
         print("Informations about the patcher : ")
@@ -17,7 +18,28 @@ class Patcher:
         print("Number of patches per line : ", self.number_patches)
         print("Number of patches in the image : ",  self.number_patches*self.number_patches) 
 
+
+    def generate_elements(self):
+        pass
     def get_patches_from_image(self,image):
+        first = image[:1024]
+        second = image[1024:2048]
+        last = image[2048:]
+        image = []
+        for i in range(1024):
+            image.append(first[i])
+            image.append(second[i])
+            image.append(last[i])
+        after = np.array(image).reshape((self.imageSize,self.imageSize*3))
+        patches= []
+        for i in range(self.number_patches):
+            for j in xrange(0,self.number_patches):
+                tmp = after[i*self.sizeSquare:i*self.sizeSquare+self.sizeSquare,j*self.sizeSquare*3:j*self.sizeSquare*3+self.sizeSquare*3]
+                patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
+        return list(patches)
+
+
+    def get_patches_from_image_reduced(self,image):
         first = image[:1024]
         second = image[1024:2048]
         last = image[1024:]
@@ -32,7 +54,7 @@ class Patcher:
             for j in xrange(0,self.number_patches):
                 tmp = after[i*self.sizeSquare:i*self.sizeSquare+self.sizeSquare,j*self.sizeSquare*3:j*self.sizeSquare*3+self.sizeSquare*3]
                 patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
-        return list(patches)
+        new_patches = list(patches)    
 
     def show_patches(self,patches):
         #print("l1",len(patches),len(patches[0]))
@@ -70,5 +92,31 @@ class Patcher:
         to_display = np.array(to_display)
         plt.imshow(to_display)
         plt.show()
+
+
+
+
+def normalized(ma_liste):
+    means = np.mean(ma_liste)
+    var = np.std(ma_liste)
+    for i in range(len(ma_liste)):
+        ma_liste[i] = (((ma_liste[i])-means)/var) 
+    return ma_liste
+
+def unpickle(file):
+    fo = open(file, 'rb')
+    dict = cPickle.load(fo)
+    fo.close()
+    return dict
+
+
+
+dicos = unpickle("cifar-10-batches-py/test_batch")
+patcher = Patcher(16,32)
+patches = patcher.get_patches_from_image(dicos['data'][0])
+print(patches)
+patcher.show_image(dicos['data'][0])
+patcher.show_patches(patches[0])
+patcher.show_patches(normalized(patches[0]))
 
 
