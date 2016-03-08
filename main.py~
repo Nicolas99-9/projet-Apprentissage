@@ -8,6 +8,7 @@ import itertools
 from pprint import pprint
 import random
 import operator
+import matplotlib.pyplot as plt
 
 
 NUMBER_CLASSES = 10
@@ -48,6 +49,14 @@ def moyenne_element(liste):
         finale[i] = np.divide(finale[i],taille)
     return finale
 
+
+def moyenne_element2(liste):
+    result = liste[0]
+    for i  in range(1,len(liste)):
+        result = np.add(result,liste[i])
+        for j in range(len(result)):
+            result[j] = result[j]/2.0
+    return result
 #-----------------------------------------------------------------------------------------------------
 
 def unpickle(file):
@@ -56,10 +65,31 @@ def unpickle(file):
     fo.close()
     return dict
 
-
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
 
+def show_image(img):
+    to_display = []
+    count = 0
+    tmp = []
+    for i in range(1024):
+        tmp.append([img[i]/255.0,img[i+1024]/255.0,img[i+2048]/255.0])
+        count +=1
+        if(count%32==0):
+            count = 0
+            to_display.append(tmp)
+            tmp = []
+    to_display = np.array(to_display)
+    plt.imshow(to_display)
+    plt.show()
+
+
+def display_image(i):
+    show_image(dicos['data'][i])
+
+#display_image(0)
+
 dicos_test = unpickle("cifar-10-batches-py/data_batch_2")
+
 
 dicos_test_value = unpickle("cifar-10-batches-py/data_batch_3")
 
@@ -106,35 +136,54 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     #dico_patches_moyenne contain N * 4 random patch selected from the data
     #compute the average
     for element in dico_patches_moyenne:
-        dico_patches_moyenne[element][0] = list(moyenne_element(dico_patches_moyenne[element][0]))
-        dico_patches_moyenne[element][1] = list(moyenne_element(dico_patches_moyenne[element][1]))
-        dico_patches_moyenne[element][2] = list(moyenne_element(dico_patches_moyenne[element][2]))
-        dico_patches_moyenne[element][3] = list(moyenne_element(dico_patches_moyenne[element][3]))
+        dico_patches_moyenne[element][0] = list(moyenne_element2(dico_patches_moyenne[element][0]))
+        dico_patches_moyenne[element][1] = list(moyenne_element2(dico_patches_moyenne[element][1]))
+        dico_patches_moyenne[element][2] = list(moyenne_element2(dico_patches_moyenne[element][2]))
+        dico_patches_moyenne[element][3] = list(moyenne_element2(dico_patches_moyenne[element][3]))
     return dico_patches_moyenne
 
 
 #compute the representants, each classe has 4 representants
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,37)
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,len(dicos['data']))
+
 
 
 
 #------------------- TESTS--------------------------------------------------------------------------
+#calcule la distance pour chaque patch avec l'ensemble des representants puis genere la nouvelle representation des donnees
 
-def sortes(ma_list):
-    result = sorted(ma_list.items(), key=operator.itemgetter(1))
-    return result
 
 
 def distance(a,b):
     return np.linalg.norm(a-b)
 
+'''
+def test_model(images,model,nb):
+    labels = images['labels']
+    data = images['data']
+    resultat = []
+    assert(nb<len(data)),("Vous ne pouvez tester que sur : " + str(len(data)))
+    for element in range(nb):
+        patchs_actuel = get_patches_from_image(data[element])
+        buffers = []
+        for i in patchs_actuel:
+            #each patch
+            petit = []
+            var = 9999999  #distance max
+            classe = -1
+            for j in range(NUMBER_CLASSES):
+                varss = distance(np.array(model[j][i]),np.array(patchs_actuel[i]))
+                if(varss<var):
+                    var = varss
+                    classe = j
+            tableau  = [0 for i in range(NUMBER_CLASSES)]
+            tableau[classe] = 1 
+            buffers = buffers + tableau
+        phrase = (element,buffers)
+        resultat.append(phrase)
+    return resultat
 
-def get_k_nearest_voisins(k,liste,x):
-    lis = {}
-    for i in range(len(liste)):
-        lis[i] = distance(x,liste[i])
-    return (sortes(lis)[:k])
-
+'''
 
 
 def test_model(images,model,nb):
@@ -151,13 +200,15 @@ def test_model(images,model,nb):
             var = 9999999  #distance max
             classe = -1
             for j in range(NUMBER_CLASSES):
-                #bug
-                varss = distance(np.array(model[j][i]),np.array(patchs_actuel[i]))
-                if(varss<var):
-                    var = varss
-                    classe = j
+                for w in range(4):
+                    varss = distance(np.array(model[j][w]),np.array(patchs_actuel[i]))
+                    if(varss<var):
+                        var = varss
+                        classe = j
+                    #print("j : ",j,varss,"classe :",classe)
             tableau  = [0 for i in range(NUMBER_CLASSES)]
             tableau[classe] = 1 
+            #print(classe," vraie lael : ",labels[element],tableau)
             buffers = buffers + tableau
         phrase = (element,buffers)
         resultat.append(phrase)
@@ -167,18 +218,61 @@ def test_model(images,model,nb):
 
 
 print("Generation de la nouvelle representation des donnes")
-nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,500)
-print(nouvelles_donnes)
-nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,500)
+nouvelles_donnes = test_model(dicos_test,elements_aleatoires_moyenne,1000)
+
+
+nouvelles_test = test_model(dicos_test_value,elements_aleatoires_moyenne,1000)
 print("Generation terminee")
 
-print(nouvelles_test)
-'''
+
+def get_positions(liste):
+    tmp =  [i for i in range(len(liste)) if liste[i]==1]
+    return tmp
+
+def has_couple(x,y,ex, ey):
+    for i in range(len(x)):
+        if(x[i] == ex and y[i] == ey):
+            return i
+    return -1
+
+def plot_model(donnees):
+    labels =  dicos_test['labels'] 
+    dicoss = {}
+    for i in range(NUMBER_CLASSES):
+        dicoss[i] = []
+    for (etiquette,element) in donnees:
+        dicoss[labels[etiquette]] = dicoss[labels[etiquette]]+  get_positions(element)
+    x = []
+    y = []
+    s = []
+    for i in range(NUMBER_CLASSES):
+        print(len(dicoss[i]))
+    for i in range(NUMBER_CLASSES):
+        for element in dicoss[i]:
+            val = has_couple(x,y,element,i)
+            if(val==-1):
+                x.append(element)
+                y.append(i)
+                s.append(10)
+            else:
+                s[val] = s[val]+15
+    plt.scatter(x,y,s)
+    print(len(donnees))
+    plt.title('Repartition des points en fonction de la classe')
+    plt.xlabel('valeurs des points')
+    plt.ylabel('classe')
+    plt.savefig('ScatterPlot.png')
+    plt.show()
+
+plot_model(nouvelles_donnes)
+
+
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
+#
 
 #return the estimate classes of an observation
 def classify(observation, poids):
-    vl = -1
+    vl = 0
     classe = -1
     for i in range(len(poids)):
         tmp = np.dot(observation,poids[i])
@@ -189,18 +283,23 @@ def classify(observation, poids):
 
 def learn(train,nb,poids,labels):
     for s in range(1,nb+1): 
+        erreur = 0.0
         for (etiquette,element) in train:
             estimation = classify(element,poids) 
             reelle= labels[etiquette]
             if(not (estimation == reelle)):
                 reelle= labels[etiquette]
+                erreur +=1
                 poids[reelle] = poids[reelle] + element
                 poids[estimation] = poids[estimation] -element
+        print("taux d'erreur : ",erreur/len(train))
     return poids
    
 #poids = [[0 for i in range(
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,100,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+poids = learn(nouvelles_donnes,250,np.array([[0 for i in range(40)] for j in range(NUMBER_CLASSES)]),dicos_test['labels'])
+
+
 print("Valeur des poids : ")
 print(poids)
 print("Fin du perceptron")
@@ -217,5 +316,5 @@ def test(corpus,poids,labels):
 print("debut des tests")
 print("Taux d'erreur : ",test(nouvelles_test,poids,dicos_test_value['labels']))
 print("fin des test")
-'''
+
 

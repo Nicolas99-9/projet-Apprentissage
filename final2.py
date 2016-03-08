@@ -15,17 +15,17 @@ from patcher import Patcher
 
 
 
-NUMBER_CLASSES = 50
+NUMBER_CLASSES = 250
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 11
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 500
+NUMBER_K_MEANS = 4500
 #number of data for training
-NUMBER_TRAIN = 1000
+NUMBER_TRAIN = 4500
 #number of data to evaluate our model
-NUMBER_TEST = 200
+NUMBER_TEST = 600
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -203,6 +203,27 @@ def whiteningV2(liste):
     std_liste = np.std(tmp,axis=0)
     return list(tmp / std_liste)
 
+
+def debug_image(partitions):
+    dics = {}
+    for element in partitions:
+        points,val = element
+        if(val in dics):
+            dics[val].append(points)
+        else:
+            dics[val] = []
+            dics[val].append(points)
+    print("dico 0")
+    for i in dics[0]:
+            patcher.show_patches(np.array(i))
+    print("dico  2")
+    for i in dics[2]:
+            patcher.show_patches(np.array(i))
+    print("dico  9")
+    for i in dics[9]:
+            patcher.show_patches(np.array(i))
+    
+
 def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
@@ -212,7 +233,8 @@ def construction_dictionnaire_n_patches(dictionnary,N):
             mes_patches.append(whiteningV2(normalized(patches[j].astype(float))))
     random.seed(45)
     random.shuffle(mes_patches)
-    partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,1,NUMBER_PERIODS)
+    partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
+    #debug_image(partitions)
     return moyennes
 
 
@@ -305,7 +327,7 @@ def plot_model(donnees,filename,dicos_test):
     plt.savefig(filename)
     plt.show()
 
-#plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
+plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
 
 pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
@@ -373,8 +395,8 @@ def learn_SVM(data_train,data_test):
     for i in range(len(predictions2)):
         if(predictions2[i]!=real_label[i]):
             taux_erreur2 +=1.0
-    print("taux d'erreurs en lineaire ", taux_erreur/float(len(data_train)))
-    print("taux d'erreurs en polynomiale ", taux_erreur2/float(len(data_train)))
+    print("taux d'erreurs en lineaire ",taux_erreur, taux_erreur/float(len(predictions)))
+    print("taux d'erreurs en polynomiale ",taux_erreur2, taux_erreur2/float(len(predictions2)))
 
 moyennes = learn_SVM(nouvelles_donnes,test_data)
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------

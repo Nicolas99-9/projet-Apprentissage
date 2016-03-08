@@ -10,21 +10,22 @@ import random
 import operator
 import matplotlib.pyplot as plt
 import kmeans
+from sklearn.feature_extraction import image
 
 
 
 
-NUMBER_CLASSES = 10
+NUMBER_CLASSES = 100
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
-NUMBER_PERIODS = 25
+NUMBER_PERIODS = 5
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 700
+NUMBER_K_MEANS = 1
 #number of data for training
-NUMBER_TRAIN = 700
+NUMBER_TRAIN = 5000
 #number of data to evaluate our model
-NUMBER_TEST = 700
+NUMBER_TEST = 5000
 #number of periods of the perceptron
 EPOQS = 100
 
@@ -110,32 +111,31 @@ def get_patches_from_image(image):
 def chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
+
 '''
-def get_patches_from_image(image):
+def get_patches_from_image(image2):
     result = {}
     for i in range(NUMBER_PATCHES):
         result[i] = []
     tmp = []
     for i in range(1024):
-        tmp.append(image[i])
-        tmp.append(image[i+1024])
-        tmp.append(image[i+2048])
+        tmp.append(image2[i])
+        tmp.append(image2[i+1024])
+        tmp.append(image2[i+2048])
     tmp = np.array(tmp)
     tmp = tmp.reshape(32,96)
-    for i in range(NUMBER_PATCHES):
-        print("debut fin",(i%NUMBER_PATCHES),i)
     taille = 96/np.sqrt(NUMBER_PATCHES)
     taille2 = 32/np.sqrt(NUMBER_PATCHES)
-    for j in range(len(tmp)):
-        bdd = list(chunks(tmp[j],int(taille)))
-        count = 0
-        for e in bdd:
-            indice = int(round((j/taille2))+count)
-            result[indice] = result[indice]+list(e)
-            count +=1
+    print(taille,taille2)
+    patches =  image.extract_patches_2d(tmp, (int(taille2), int(taille)))
+    print(len(patches))
     return result
 '''
 
+
+
+
+'''
 def get_patches_from_image(image):
     result = {}
     for i in range(NUMBER_PATCHES):
@@ -166,8 +166,7 @@ def get_patches_from_image(image):
             k += nb
             tmp =  0
     return result
-
-'''
+''''''
 import numpy as numpy
 def get_patches_from_image(image):
     size_r = 5
@@ -210,8 +209,10 @@ elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_
 
 #display_image(0,dicos)
 
-#show_image_after(get_patches_from_image(dicos['data'][0])[0])
-
+show_image_after(get_patches_from_image(dicos['data'][0])[0])
+show_image_after(get_patches_from_image(dicos['data'][0])[1])
+show_image_after(get_patches_from_image(dicos['data'][0])[2])
+show_image_after(get_patches_from_image(dicos['data'][0])[3])
 
 
 

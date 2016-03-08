@@ -1,7 +1,8 @@
 import numpy as np
 import cPickle
 import matplotlib.pyplot as plt
-
+from pprint import pprint
+from scipy.cluster.vq import whiten
 
 class Patcher:
  
@@ -32,12 +33,11 @@ class Patcher:
             for j in xrange(0,self.number_patches):
                 tmp = after[i*self.sizeSquare:i*self.sizeSquare+self.sizeSquare,j*self.sizeSquare*3:j*self.sizeSquare*3+self.sizeSquare*3]
                 patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
-        return list(patches)
+        return list(np.array(patches).astype('int'))
 
     def show_patches(self,patches):
         #print("l1",len(patches),len(patches[0]))
         tmp = np.array(patches)
-        print("debugf ",tmp.shape)
         to_display = []
         to_add = []
         count =0
@@ -70,5 +70,4 @@ class Patcher:
         to_display = np.array(to_display)
         plt.imshow(to_display)
         plt.show()
-
 
