@@ -240,7 +240,6 @@ def test_model(images,model,nb):
         #print("element : ",element)
         patchs_actuel = patcher.get_patches_from_image(data[element])
         buffers = []
-
         for i in range(len(patchs_actuel)):
             #each patch
             petit = []
@@ -262,7 +261,6 @@ def test_model(images,model,nb):
 
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
-
 print("Generation terminee")
 
 

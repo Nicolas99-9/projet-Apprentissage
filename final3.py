@@ -56,8 +56,8 @@ EPOQS = 60
 '''
 
 
-
-NUMBER_CLASSES = 200
+'''
+NUMBER_CLASSES = 150
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
@@ -65,33 +65,39 @@ NUMBER_PERIODS = 10
 #number of images to use for  the k means function
 NUMBER_K_MEANS = 5000
 #number of data for training
-NUMBER_TRAIN = 8000
+NUMBER_TRAIN = 5000
+#number of data to evaluate our model
+NUMBER_TEST = 800
+#number of periods of the perceptron
+EPOQS = 60
+'''
+
+
+
+NUMBER_CLASSES = 300
+#number of patches per image
+NUMBER_PATCHES =  4
+#number of perdios for k means function
+NUMBER_PERIODS = 10
+#number of images to use for  the k means function
+NUMBER_K_MEANS = 9000
+#number of data for training
+NUMBER_TRAIN = 9000
 #number of data to evaluate our model
 NUMBER_TEST = 1500
 #number of periods of the perceptron
 EPOQS = 60
 
 
-#correct the bug of the kmean function
-#write a svm
-#only four 0
-
-
-#best performances : LINEAR SVM : 22.2% error rate, 200 classes (=> 800 features), 1200 centroids , 10 periods, 4 patches,  5000 train data , 1500 for testing  ("taux d'erreurs ", 0.2268)
-
-# LINEAR SVM  : 18% error rate , 250 classes (1000 features), 1800 centroids, 8000 training data, 1800 tests
 
 #profiling :python -m cProfile final2.py
 
-'''
-("taux d'erreurs en lineaire ", 0.149)
-("taux d'erreurs en polynomiale ", 0.184)
-'''
+
 
 
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(8,32)
+patcher = Patcher(16,32)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -238,9 +244,9 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  patcher.get_patches_from_image(dico_random[i])
+        patches =  patcher.get_patches_from_image_reduced(dico_random[i])
         for j in range(len(patches)):
-            tmp = whiteningV2(normalized(patches[j].astype(float)))
+            tmp = whiteningV2(normalized(np.array(patches[j]).astype(float)))
             if(np.isnan(tmp).any()):
                 print("NAN ")
                 mes_patches.append(np.zeros(len(tmp)))
@@ -249,7 +255,8 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     random.seed(45)
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
-    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 3 , verbose= True, max_iter = 100)
+    #n_init = 3
+    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 100)
     kmeans.fit(mes_patches)
     centroids = kmeans.cluster_centers_
     #debug_image(partitions)
@@ -327,9 +334,9 @@ def test_model(images,model,nb):
     for element in range(nb):
         print(element)
         #print("element : ",element)
-        patchs_actuel = patcher.get_patches_from_image(data[element])
+        patchs_actuel = patcher.get_patches_from_image_reduced(data[element])
         for i in range(len(patchs_actuel)):
-            patchs_actuel[i]  = whiteningV2(np.array(patchs_actuel[i]))
+            patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]))
         buffers = []
 
         for i in range(len(patchs_actuel)):
@@ -411,7 +418,7 @@ for i in range(len(pour_tests['data'])):
         new_dicos['data'].append( pour_tests['data'][i])
 pour_tests = new_dicos
 '''
-print(new_dicos['labels'])
+
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
 
 #--------------------------------K nearest neighbours----------------------------------------------
