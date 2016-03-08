@@ -125,10 +125,6 @@ class Patcher:
         plt.imshow(to_display)
         plt.show()
 
-<<<<<<< HEAD
-=======
-
-
 
 def normalized(ma_liste):
     means = np.mean(ma_liste)
@@ -154,4 +150,3 @@ patcher.show_patches_reduced(patches[0])
 #patcher.show_patches_reduced(normalized(patches[0]))
 '''
 
->>>>>>> f23101638ba92dbc68e9df9eb3a31c50386756d1

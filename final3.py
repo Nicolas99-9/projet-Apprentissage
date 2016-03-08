@@ -74,17 +74,17 @@ EPOQS = 60
 
 
 
-NUMBER_CLASSES = 300
+NUMBER_CLASSES = 250
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 9000
+NUMBER_K_MEANS = 6000
 #number of data for training
-NUMBER_TRAIN = 9000
+NUMBER_TRAIN = 6000
 #number of data to evaluate our model
-NUMBER_TEST = 1500
+NUMBER_TEST = 4000
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -246,7 +246,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     for i in range(len(dico_random)):
         patches =  patcher.get_patches_from_image_reduced(dico_random[i])
         for j in range(len(patches)):
-            tmp = whiteningV2(normalized(np.array(patches[j]).astype(float)))
+            tmp = np.array(patches[j]).astype(float)
             if(np.isnan(tmp).any()):
                 print("NAN ")
                 mes_patches.append(np.zeros(len(tmp)))
@@ -335,10 +335,10 @@ def test_model(images,model,nb):
         print(element)
         #print("element : ",element)
         patchs_actuel = patcher.get_patches_from_image_reduced(data[element])
-        for i in range(len(patchs_actuel)):
-            patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]))
+        '''for i in range(len(patchs_actuel)):
+            patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]))'''
         buffers = []
-
+        
         for i in range(len(patchs_actuel)):
             #each patch
             petit = []
