@@ -10,7 +10,7 @@ class Patcher:
         self.imageSize = imageSize
         self.sizeSquare = size_patch
         self.number_patches = (imageSize/size_patch)
-        self.generate_elements()
+        #self.generate_elements()
 
     def show_informations(self):
         print("Informations about the patcher : ")
@@ -69,7 +69,7 @@ class Patcher:
         for i in range(len(new_patches)):
             to_add = []
             for j in xrange(0,len(new_patches[i]),3):
-                to_add.append(self.conversion[new_patches[i][j],new_patches[i][j+1],new_patches[i][j+2]])
+                to_add.append(self.conversion[(new_patches[i][j],new_patches[i][j+1],new_patches[i][j+2])])
             tmp.append(to_add) 
         return tmp
 
@@ -149,4 +149,3 @@ print(patches)
 patcher.show_patches_reduced(patches[0])
 #patcher.show_patches_reduced(normalized(patches[0]))
 '''
-
