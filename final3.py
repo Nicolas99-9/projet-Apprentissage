@@ -74,17 +74,29 @@ EPOQS = 60
 
 
 
+<<<<<<< HEAD
+NUMBER_CLASSES = 700
+=======
 NUMBER_CLASSES = 250
+>>>>>>> 3a426a7c0f1b22f67cb144dc910c137f3471bb74
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
+<<<<<<< HEAD
+NUMBER_K_MEANS = 14000
+#number of data for training
+NUMBER_TRAIN = 14000
+#number of data to evaluate our model
+NUMBER_TEST = 2200
+=======
 NUMBER_K_MEANS = 6000
 #number of data for training
 NUMBER_TRAIN = 6000
 #number of data to evaluate our model
 NUMBER_TEST = 4000
+>>>>>>> 3a426a7c0f1b22f67cb144dc910c137f3471bb74
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -92,9 +104,12 @@ EPOQS = 60
 
 #profiling :python -m cProfile final2.py
 
-
-
-
+'''
+1) presentation sujet & traitement langage
+2) methode utilise (details techniques) , libraires et codes
+3) deroulement et methode de travail
+4) resultats et analyse
+'''
 #------------------------------ K means algorithm ---------------------------------------------------
 
 patcher = Patcher(16,32)
@@ -157,9 +172,7 @@ def unpickle(file):
 #function to normalized a list
 def normalized(ma_liste):
     means = np.mean(ma_liste)
-    var = np.std(ma_liste)
-    #print("mean",means)
-    #print("var",var)
+    var = np.var(ma_liste)
     for i in range(len(ma_liste)):
         ma_liste[i] = (((ma_liste[i])-means)/var)
     return ma_liste
@@ -244,15 +257,19 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  patcher.get_patches_from_image_reduced(dico_random[i])
+        patches =  patcher.get_patches_from_image(dico_random[i])
         for j in range(len(patches)):
+<<<<<<< HEAD
+            tmp = normalized(np.array(patches[j]).astype(float))
+=======
             tmp = np.array(patches[j]).astype(float)
+>>>>>>> 3a426a7c0f1b22f67cb144dc910c137f3471bb74
             if(np.isnan(tmp).any()):
                 print("NAN ")
                 mes_patches.append(np.zeros(len(tmp)))
             else:
                 mes_patches.append(tmp)
-    random.seed(45)
+    #random.seed(45)
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
     #n_init = 3
@@ -334,9 +351,15 @@ def test_model(images,model,nb):
     for element in range(nb):
         print(element)
         #print("element : ",element)
+<<<<<<< HEAD
+        patchs_actuel = patcher.get_patches_from_image(data[element])
+        for i in range(len(patchs_actuel)):
+            patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]).astype(float))
+=======
         patchs_actuel = patcher.get_patches_from_image_reduced(data[element])
         '''for i in range(len(patchs_actuel)):
             patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]))'''
+>>>>>>> 3a426a7c0f1b22f67cb144dc910c137f3471bb74
         buffers = []
         
         for i in range(len(patchs_actuel)):
@@ -475,19 +498,6 @@ def learn_SVM(data_train,data_test):
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
     print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
-    svc2 = svm.SVC(kernel='poly')
-    print("debut apprentissage poly")
-    svc2.fit(np.array(donnes), np.array(eti))
-    print("fin apprentissage poly")
-    print("debut predictions poly")
-    predictions2 = svc2.predict(np.array(to_predict))
-    print("fin predictions poly")
-    taux_erreur2 = 0.0
-    for i in range(len(predictions2)):
-        if(predictions2[i]!=real_label[i]):
-            taux_erreur2 +=1.0
-    print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
-    print("taux d'erreurs en polynomiale ",taux_erreur2,len(predictions2), taux_erreur2/float(len(predictions2)))
 
 moyennes = learn_SVM(nouvelles_donnes,test_data)
 #------------------------ Perceptron utilisant les nouvelles donnes --------------------------
@@ -519,28 +529,19 @@ def learn(train,nb,poids,labels):
     return poids
 
 
-def test(corpus,poids,labels,dicos):
+def test(corpus,poids,labels):
     erreur = 0.0
     for etiquette,element in corpus:
         vm = classify(element,poids)
         #print(vm , "vraie valeur : ",labels[etiquette])
-        display_image(etiquette,dicos)
+        #display_image(etiquette,dicos)
         if not vm == labels[etiquette]:
             erreur +=1.0
     return erreur/len(corpus)
 
 
-'''
-print("Debut du perceptron")
-poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])
-print("Valeur des poids : ")
-print(poids)
-print("Fin du perceptron")
-print("debut des tests")
 
-pour_tests = unpickle("cifar-10-batches-py/data_batch_3")
-test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
-plot_model(test_data,'ScatterPlot2.png',pour_tests)
-print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels'],pour_tests))
+print("Debut du perceptron")
+poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*16)] for j in range(10)]),dicos['labels'])
+print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
 print("fin des test")
-'''
