@@ -74,7 +74,7 @@ EPOQS = 60
 
 
 
-NUMBER_CLASSES = 600
+NUMBER_CLASSES = 900
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
@@ -257,7 +257,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
     #n_init = 3
-    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 100)
+    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 70)
     kmeans.fit(mes_patches)
     centroids = kmeans.cluster_centers_
     #debug_image(partitions)
@@ -286,7 +286,7 @@ def merge_dicos(dicos1 , dicos2 , dicos3):
             dicos1[k] = np.array(list(dicos1[k]) + list(dicos2[k]) + list(dicos3[k]))
     return dicos1
 
-dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_3"))
+dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_3"))
 
 #keep only two classes
 '''
@@ -359,6 +359,9 @@ def test_model(images,model,nb):
 
 
 print("Generation de la nouvelle representation des donnes")
+
+
+dicos = unpickle("cifar-10-batches-py/data_batch_1")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
 
 print("Generation terminee")
