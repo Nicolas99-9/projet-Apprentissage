@@ -74,17 +74,17 @@ EPOQS = 60
 
 
 
-NUMBER_CLASSES = 600
+NUMBER_CLASSES = 1200
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 5000
+NUMBER_K_MEANS = 4000
 #number of data for training
-NUMBER_TRAIN = 5000
+NUMBER_TRAIN = 6000
 #number of data to evaluate our model
-NUMBER_TEST = 800
+NUMBER_TEST = 1000
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -275,7 +275,7 @@ print("taille des moyennes :",elements_aleatoires_moyenne)
 
 
 #save the clusters extracted with the kmeans algorithm
-#save_element("cifar-10-batches-py-dicofull",elements_aleatoires_moyenne)
+save_element("cifar-10-batches-py-dicofull-8",elements_aleatoires_moyenne)
 
 
 
