@@ -74,7 +74,7 @@ EPOQS = 60
 
 
 
-NUMBER_CLASSES = 5000
+NUMBER_CLASSES = 600
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
@@ -107,7 +107,7 @@ redecouper en 4 les patches
 '''
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(16,32)
+patcher = Patcher(16,32,4)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -208,7 +208,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  patcher.get_patches_from_image(dico_random[i])
+        patches =  patcher.get_patches_from_image_strides(dico_random[i])
         for j in range(len(patches)):
             tmp = normalized(np.array(patches[j]).astype(float))
             if(np.isnan(tmp).any()):
@@ -300,7 +300,7 @@ def test_model(images,model,nb):
     for element in range(nb):
         print(element)
         #print("element : ",element)
-        patchs_actuel = patcher.get_patches_from_image(data[element])
+        patchs_actuel = patcher.get_patches_from_image_strides(data[element])
         for i in range(len(patchs_actuel)):
             patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]).astype(float))
         buffers = []
