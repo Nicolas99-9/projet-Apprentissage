@@ -74,17 +74,17 @@ EPOQS = 60
 
 
 
-NUMBER_CLASSES = 600
+NUMBER_CLASSES = 5000
 #number of patches per image
 NUMBER_PATCHES =  4
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 8000
+NUMBER_K_MEANS = 5000
 #number of data for training
-NUMBER_TRAIN = 8000
+NUMBER_TRAIN = 5000
 #number of data to evaluate our model
-NUMBER_TEST = 2200
+NUMBER_TEST = 800
 #number of periods of the perceptron
 EPOQS = 60
 
@@ -97,10 +97,17 @@ EPOQS = 60
 2) methode utilise (details techniques) , libraires et codes
 3) deroulement et methode de travail
 4) resultats et analyse
+
+
+#convulationnal => 
+#stride
+#kmeans initilisation
+redecouper en 4 les patches
+
 '''
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(8,32)
+patcher = Patcher(16,32)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -165,50 +172,6 @@ def normalized(ma_liste):
         ma_liste[i] = (((ma_liste[i])-means)/var)
     return ma_liste
 
-def normalizedV2(a, axis=-1, order=2):
-    l2 = np.atleast_1d(np.linalg.norm(a, order, axis))
-    l2[l2==0] = 1
-    return a / np.expand_dims(l2, axis)
-
-
-#cut an image into patches
-
-def chunks(l, n):
-    for i in xrange(0, len(l), n):
-        yield l[i:i+n]
-
-def get_patches_from_image(image):
-    result = {}
-    for i in range(NUMBER_PATCHES):
-        result[i] = []
-    #nb de colonnes
-    nb = int(np.sqrt(NUMBER_PATCHES))
-    taille_ligne = 32
-    par_ligne = int(taille_ligne/nb)
-    splied = list(chunks(image,par_ligne))
-    count = 0
-    tmp = 0
-    k = 0
-    tier = len(splied)/3
-    doubles = 2*tier
-    for i in range(len(splied)/3):
-        indice = (i%nb)+k
-        if(indice>=NUMBER_PATCHES):
-            return result
-        ddd = []
-        ddd.append(iter(splied[i]))
-        ddd.append(iter(splied[i+tier]))
-        ddd.append(iter(splied[i+doubles]))
-        #print("longuiedueuueueu",len(splied[i+doubles]),indice)
-        result[indice] = result[indice]+ list(it.next() for it in itertools.cycle(ddd))
-        if((indice-k)==(nb-1)):
-            tmp+=1
-        if(tmp==(par_ligne)):
-            k += nb
-            tmp =  0
-    return result
-
-
 
 #problem
 def whiteningV2(liste):
@@ -249,7 +212,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
         for j in range(len(patches)):
             tmp = normalized(np.array(patches[j]).astype(float))
             if(np.isnan(tmp).any()):
-                print("NAN ")
+                #print("NAN ",i,j,tmp)
                 mes_patches.append(np.zeros(len(tmp)))
             else:
                 mes_patches.append(tmp)
@@ -257,7 +220,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     random.shuffle(mes_patches)
     #partitions,moyennes = kmeans2.kmeans(mes_patches,NUMBER_CLASSES,150,NUMBER_PERIODS)
     #n_init = 3
-    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 100)
+    kmeans = cluster.KMeans(n_clusters=NUMBER_CLASSES,n_init = 1 , verbose= True, max_iter = 100, n_jobs=-1)
     kmeans.fit(mes_patches)
     centroids = kmeans.cluster_centers_
     #debug_image(partitions)
@@ -287,6 +250,8 @@ def merge_dicos(dicos1 , dicos2 , dicos3):
     return dicos1
 
 dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifar-10-batches-py/data_batch_2"),unpickle("cifar-10-batches-py/data_batch_3"))
+print(dicos)
+
 
 #keep only two classes
 '''
@@ -446,6 +411,7 @@ def learn_k_nearest(data_train,data_test):
     for i in range(len(predictions)):
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
+            print(predictions[i]!=real_label[i])
     print("taux d'erreurs ", taux_erreur/float(len(data_train)))
 
 #moyennes = learn_k_nearest(nouvelles_donnes,test_data)
@@ -472,6 +438,7 @@ def learn_SVM(data_train,data_test):
     print("fin predictions")
     taux_erreur = 0.0
     for i in range(len(predictions)):
+        print(predictions[i],real_label[i],pour_tests['filenames'][i])
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
     print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
@@ -519,6 +486,6 @@ def test(corpus,poids,labels):
 
 
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*16)] for j in range(10)]),dicos['labels'])
+poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])
 print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
 print("fin des test")

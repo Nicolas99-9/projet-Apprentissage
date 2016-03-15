@@ -6,9 +6,10 @@ from scipy.cluster.vq import whiten
 
 class Patcher:
  
-    def __init__(self,size_patch,imageSize):
+    def __init__(self,size_patch,imageSize,strideSize = -1):
         self.imageSize = imageSize
         self.sizeSquare = size_patch
+        self.strideSize = strideSize
         self.number_patches = (imageSize/size_patch)
         #self.generate_elements()
 
@@ -73,6 +74,29 @@ class Patcher:
             tmp.append(to_add) 
         return tmp
 
+    def get_patches_from_image_strides(self,image):
+        first = image[:1024]
+        second = image[1024:2048]
+        last = image[2048:]
+        image = []
+        for i in range(1024):
+            image.append(first[i])
+            image.append(second[i])
+            image.append(last[i])
+        after = np.array(image).reshape((self.imageSize,self.imageSize*3))
+        patches= []
+        nb_Stride  = self.imageSize - self.sizeSquare +1
+        print("nb stride", nb_Stride) 
+        for i in range(0,nb_Stride):
+            print("i :",i)
+            for j in xrange(0,nb_Stride):
+                tmp = after[i*self.strideSize:i*self.strideSize+self.sizeSquare,j*self.strideSize*3:j*self.strideSize*3+self.sizeSquare*3]
+                #print(i*self.strideSize,i*self.strideSize+self.sizeSquare,j*self.strideSize,j*self.strideSize+self.sizeSquare*3)
+                print(after.shape,tmp.shape,i*self.strideSize,i*self.strideSize+self.sizeSquare,j*self.strideSize*3,j*self.strideSize*3+self.sizeSquare*3)
+                if(len(tmp) == self.sizeSquare and len(tmp[0]) == self.sizeSquare*3):
+                    patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
+        return list(np.array(patches).astype('int'))
+
     def show_patches(self,patches):
         #print("l1",len(patches),len(patches[0]))
         tmp = np.array(patches)
@@ -90,8 +114,25 @@ class Patcher:
         plt.imshow(to_display)
         plt.show()
 
-    def show_patches_reduced(self,patches):
+
+    def show_patches_normalized(self,patches):
         tmp = np.array(patches)
+        to_display = []
+        to_add = []
+        count =0
+        for j in xrange(0,len(patches),3):
+            to_add.append([tmp[j] ,tmp[j+1]  ,tmp[j+2] ])
+            count +=1
+            if(count%(self.sizeSquare)==0):
+                to_display.append(to_add)
+                to_add = [] 
+                count =0
+        to_display = np.array(to_display)
+        plt.imshow(to_display)
+        plt.show()
+
+    def show_patches_reduced(self,patches):
+        tmp = patches
         to_display = []
         to_add = []
         count =0
@@ -127,11 +168,14 @@ class Patcher:
 
 
 def normalized(ma_liste):
+    #print("len before", len(ma_liste),ma_liste)
     means = np.mean(ma_liste)
-    var = np.std(ma_liste)
+    var = np.var(ma_liste)
     for i in range(len(ma_liste)):
-        ma_liste[i] = (((ma_liste[i])-means)/var) 
+        ma_liste[i] = (((ma_liste[i])-means)/var)
+    #print("len after", len(ma_liste),ma_liste)
     return ma_liste
+
 
 def unpickle(file):
     fo = open(file, 'rb')
@@ -140,12 +184,15 @@ def unpickle(file):
     return dict
 
 
-'''
-dicos = unpickle("cifar-10-batches-py/test_batch")
-patcher = Patcher(16,32)
-patches = patcher.get_patches_from_image_reduced(dicos['data'][0])
+dicos = unpickle("cifar-10-batches-py/data_batch_1")
+patcher = Patcher(16,32,1)
+patches = patcher.get_patches_from_image_strides(dicos['data'][0])
+print("len patces  :",len(patches))
 patcher.show_image(dicos['data'][0])
-print(patches)
-patcher.show_patches_reduced(patches[0])
+count = 0
+for i in range(len(patches[:3])):
+    #print(patches[i])
+    patcher.show_patches(np.array(patches[i]).astype(float))
+'''
 #patcher.show_patches_reduced(normalized(patches[0]))
 '''
