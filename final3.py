@@ -107,7 +107,7 @@ redecouper en 4 les patches
 '''
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(16,32,4)
+patcher = Patcher(8,32,4)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -269,13 +269,13 @@ print(new_dicos['labels'])
 print("nombre d elements apres filtrage",len(new_dicos['data']))
 '''
 print("longueur de dicos  2222:",len(dicos['data']))
-elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-#elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull")
+#elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull-8-2")
 print("taille des moyennes :",elements_aleatoires_moyenne)
 
 
 #save the clusters extracted with the kmeans algorithm
-save_element("cifar-10-batches-py-dicofull-8",elements_aleatoires_moyenne)
+#save_element("cifar-10-batches-py-dicofull-8-2",elements_aleatoires_moyenne)
 
 
 
