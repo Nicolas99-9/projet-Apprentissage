@@ -86,13 +86,12 @@ class Patcher:
         after = np.array(image).reshape((self.imageSize,self.imageSize*3))
         patches= []
         nb_Stride  = self.imageSize - self.sizeSquare +1
-        print("nb stride", nb_Stride) 
         for i in range(0,nb_Stride):
-            print("i :",i)
+            #print("i :",i)
             for j in xrange(0,nb_Stride):
                 tmp = after[i*self.strideSize:i*self.strideSize+self.sizeSquare,j*self.strideSize*3:j*self.strideSize*3+self.sizeSquare*3]
                 #print(i*self.strideSize,i*self.strideSize+self.sizeSquare,j*self.strideSize,j*self.strideSize+self.sizeSquare*3)
-                print(after.shape,tmp.shape,i*self.strideSize,i*self.strideSize+self.sizeSquare,j*self.strideSize*3,j*self.strideSize*3+self.sizeSquare*3)
+                #print(after.shape,tmp.shape,i*self.strideSize,i*self.strideSize+self.sizeSquare,j*self.strideSize*3,j*self.strideSize*3+self.sizeSquare*3)
                 if(len(tmp) == self.sizeSquare and len(tmp[0]) == self.sizeSquare*3):
                     patches.append(tmp.reshape(self.sizeSquare*self.sizeSquare*3))
         return list(np.array(patches).astype('int'))
@@ -184,15 +183,18 @@ def unpickle(file):
     return dict
 
 
+
+
+'''
 dicos = unpickle("cifar-10-batches-py/data_batch_1")
-patcher = Patcher(16,32,1)
+patcher = Patcher(16,32,4)
 patches = patcher.get_patches_from_image_strides(dicos['data'][0])
 print("len patces  :",len(patches))
 patcher.show_image(dicos['data'][0])
 count = 0
-for i in range(len(patches[:3])):
+for i in range(len(patches)):
     #print(patches[i])
     patcher.show_patches(np.array(patches[i]).astype(float))
-'''
+
 #patcher.show_patches_reduced(normalized(patches[0]))
 '''

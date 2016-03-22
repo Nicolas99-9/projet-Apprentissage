@@ -76,8 +76,8 @@ EPOQS = 60
 
 
 NUMBER_CLASSES = 1600
-#number of patches per image
-NUMBER_PATCHES =  8
+#size of each patch
+NUMBER_PATCHES =  16
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
@@ -234,8 +234,8 @@ print(dicos)
 #NUMBER_PATCHES : size of each patch, 32 : size of the image, 4:stride size
 patcher = Patcher(NUMBER_PATCHES,32,4)
 print("longueur de dicos  2222:",len(dicos['data']))
-#elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull-8-test-1600")
+elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
+#elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull-8-test-1600")
 print("taille des moyennes :",elements_aleatoires_moyenne)
 #save the clusters extracted with the kmeans algorithm
 #save_element("cifar-10-batches-py-dicofull-8-test-1600",elements_aleatoires_moyenne)
@@ -284,7 +284,7 @@ def test_model(images,model,nb):
 
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
-save_element("save/nouvellesdonnes"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TRAIN),nouvelles_donnes)
+#save_element("save/nouvellesdonnes"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TRAIN),nouvelles_donnes)
 #nouvelles_donnes = load_element("save/nouvellesdonnes"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TRAIN))
 print("Generation terminee & sauvegarde faite")
 
@@ -335,7 +335,7 @@ def plot_model(donnees,filename,dicos_test):
 #load the test data
 pour_tests = unpickle("cifar-10-batches-py/data_batch_4")
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
-save_element("save/test_data"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TEST),test_data)
+#save_element("save/test_data"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TEST),test_data)
 #test_data = load_element("save/test_data"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TEST))
 
 print("Generation terminee & sauvegarde faite")
@@ -409,11 +409,17 @@ def learn_SVM(data_train,data_test,maxs):
     print("fin predictions")
     taux_erreur = 0.0
     for i in range(len(predictions)):
-        print(predictions[i],real_label[i],pour_tests['filenames'][i])
+        #print(predictions[i],real_label[i],pour_tests['filenames'][i])
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
-    print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
+    print("taux d'erreurs en lineaire ",maxs,taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
 
+
+
+
+
+moyennes = learn_SVM(nouvelles_donnes,test_data,30)
+moyennes = learn_SVM(nouvelles_donnes,test_data,60)
 moyennes = learn_SVM(nouvelles_donnes,test_data,199)
 moyennes = learn_SVM(nouvelles_donnes,test_data,400)
 moyennes = learn_SVM(nouvelles_donnes,test_data,700)
