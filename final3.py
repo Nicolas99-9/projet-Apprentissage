@@ -14,7 +14,9 @@ from scipy.cluster.vq import whiten
 from patcher import Patcher
 from sklearn import cluster
 import pickle
-
+from sklearn import metrics
+from sklearn import cross_validation
+from sklearn import svm
 
 '''
 NUMBER_CLASSES = 700
@@ -73,21 +75,19 @@ EPOQS = 60
 '''
 
 
-
-NUMBER_CLASSES = 1200
+NUMBER_CLASSES = 1600
 #number of patches per image
-NUMBER_PATCHES =  4
+NUMBER_PATCHES =  8
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 4000
+NUMBER_K_MEANS = 11000
 #number of data for training
-NUMBER_TRAIN = 6000
+NUMBER_TRAIN = 8000
 #number of data to evaluate our model
-NUMBER_TEST = 1000
+NUMBER_TEST = 1300
 #number of periods of the perceptron
-EPOQS = 60
-
+EPOQS = 40
 
 
 #profiling :python -m cProfile final2.py
@@ -107,7 +107,6 @@ redecouper en 4 les patches
 '''
 #------------------------------ K means algorithm ---------------------------------------------------
 
-patcher = Patcher(8,32,4)
 
 #return a dictionnary with k first elements of the liste : list(list())
 def choose_initiale(data, k , labels) :
@@ -120,7 +119,7 @@ def choose_initiale(data, k , labels) :
         count += 1
     return list_initiale
 
-
+#show an image
 def show_image(img):
     to_display = []
     count = 0
@@ -136,20 +135,6 @@ def show_image(img):
     plt.imshow(to_display)
     plt.show()
 
-def show_image_after(img):
-    to_display = []
-    taile = np.sqrt(NUMBER_PATCHES)
-    taile = int(32/taile)*3
-    print("tailel : ",taile)
-    for i in xrange(0,len(img),taile):
-        tmp = []
-        print(i)
-        for j in xrange(i,i+taile,3):
-            tmp.append([img[j]/255.0,img[j+1]/255.0,img[j+2]/255.0])
-        to_display.append(tmp)
-    to_display = np.array(to_display)
-    plt.imshow(to_display)
-    plt.show()
 
 #function to display the real image
 def display_image(i,dicos):
@@ -163,8 +148,7 @@ def unpickle(file):
     return dict
 
 
-#besoin d'utiliser abs ???
-#function to normalized a list
+#normalized a patch or an image
 def normalized(ma_liste):
     means = np.mean(ma_liste)
     var = np.var(ma_liste)
@@ -172,16 +156,16 @@ def normalized(ma_liste):
         ma_liste[i] = (((ma_liste[i])-means)/var)
     return ma_liste
 
+#sauvegarde un dictionnaire
+def save_element(filename,dico):
+    with open(filename, 'wb') as handle:
+        pickle.dump(dico, handle)
 
-#problem
-def whiteningV2(liste):
-    return liste
-    '''
-    tmp = np.array(liste)
-    std_liste = np.std(tmp,axis=0)
-    return list(tmp / std_liste)
-    '''
-
+#charge un dictionnaire ou une liste
+def load_element(filename):
+    with open(filename, 'rb') as handle:
+        b = pickle.load(handle)
+    return b
 
 def debug_image(partitions):
     dics = {}
@@ -202,13 +186,13 @@ def debug_image(partitions):
     for i in dics[9]:
             patcher.show_patches(np.array(i))
     
-#x = x[~numpy.isnan(x)]
 
+#construit le dictionnaire des centroids
 def construction_dictionnaire_n_patches(dictionnary,N):
     dico_random = choose_initiale(dictionnary['data'],N,dictionnary['labels'])
     mes_patches = []
     for i in range(len(dico_random)):
-        patches =  patcher.get_patches_from_image_strides(dico_random[i])
+        patches =  patcher.get_patches_from_image(dico_random[i])
         for j in range(len(patches)):
             tmp = normalized(np.array(patches[j]).astype(float))
             if(np.isnan(tmp).any()):
@@ -227,17 +211,7 @@ def construction_dictionnaire_n_patches(dictionnary,N):
     return centroids
 
 
-def save_element(filename,dico):
-    with open(filename, 'wb') as handle:
-        pickle.dump(dico, handle)
-
-
-def load_element(filename):
-    with open(filename, 'rb') as handle:
-        b = pickle.load(handle)
-    return b
-
-
+#fusionne les dictionnaires de données contenant les images
 def merge_dicos(dicos1 , dicos2 , dicos3):
     print(dicos1['data'],dicos2['data'])
     for k in dicos2.keys():
@@ -253,38 +227,20 @@ dicos = merge_dicos( unpickle("cifar-10-batches-py/data_batch_1"),unpickle("cifa
 print(dicos)
 
 
-#keep only two classes
-'''
-new_dicos = {}
-new_dicos['labels'] = []
-new_dicos['data'] = []
-for i in range(len(dicos['data'])):
-    if(dicos['labels'][i]==0 or dicos['labels'][i]==5):
-        new_dicos['labels'].append( dicos['labels'][i])
-        new_dicos['data'].append( dicos['data'][i])
-dicos = new_dicos
-print(new_dicos['labels'])
+#generation des clusters
 
 
-print("nombre d elements apres filtrage",len(new_dicos['data']))
-'''
+#cree un patcher pour extraire les patchs d'une image
+#NUMBER_PATCHES : size of each patch, 32 : size of the image, 4:stride size
+patcher = Patcher(NUMBER_PATCHES,32,4)
 print("longueur de dicos  2222:",len(dicos['data']))
 #elements_aleatoires_moyenne =  construction_dictionnaire_n_patches(dicos,NUMBER_K_MEANS)
-elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull-8-2")
+elements_aleatoires_moyenne = load_element("cifar-10-batches-py-dicofull-8-test-1600")
 print("taille des moyennes :",elements_aleatoires_moyenne)
-
-
 #save the clusters extracted with the kmeans algorithm
-#save_element("cifar-10-batches-py-dicofull-8-2",elements_aleatoires_moyenne)
+#save_element("cifar-10-batches-py-dicofull-8-test-1600",elements_aleatoires_moyenne)
 
 
-
-
-'''
-for i in range(15):
-    patcher.show_patches(elements_aleatoires_moyenne[i])
-'''
-#dicos_test_value = unpickle("cifar-10-batches, axis=0-py/data_batch_3")
 #---------------------------------------FEATURES GENERATION--------------------------------
 
 
@@ -293,14 +249,17 @@ for i in range(15):
 def distance(a,b):
     return np.linalg.norm(a-b)
 
+
+#cree une liste de la nouvelle représentation des données, de la forme [0,0,1...]
 def test_model(images,model,nb):
     labels = images['labels']
     data = images['data']
     resultat = []
     for element in range(nb):
-        print(element)
+        if(element%100==0):
+            print(element)
         #print("element : ",element)
-        patchs_actuel = patcher.get_patches_from_image_strides(data[element])
+        patchs_actuel = patcher.get_patches_from_image(data[element])
         for i in range(len(patchs_actuel)):
             patchs_actuel[i]  = normalized(np.array(patchs_actuel[i]).astype(float))
         buffers = []
@@ -325,8 +284,9 @@ def test_model(images,model,nb):
 
 print("Generation de la nouvelle representation des donnes")
 nouvelles_donnes = test_model(dicos,elements_aleatoires_moyenne,NUMBER_TRAIN)
-
-print("Generation terminee")
+save_element("save/nouvellesdonnes"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TRAIN),nouvelles_donnes)
+#nouvelles_donnes = load_element("save/nouvellesdonnes"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TRAIN))
+print("Generation terminee & sauvegarde faite")
 
 
 
@@ -369,28 +329,22 @@ def plot_model(donnees,filename,dicos_test):
     plt.savefig(filename)
     plt.show()
 
- #plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
+#plot_model(nouvelles_donnes,'ScatterPlot.png',dicos)
 
+
+#load the test data
 pour_tests = unpickle("cifar-10-batches-py/data_batch_4")
-#keep only two classes
-''''
-new_dicos = {}
-new_dicos['labels'] = []
-new_dicos['data'] = []
-for i in range(len(pour_tests['data'])):
-    if(pour_tests['labels'][i]==0 or pour_tests['labels'][i]==5):
-        new_dicos['labels'].append( pour_tests['labels'][i])
-        new_dicos['data'].append( pour_tests['data'][i])
-pour_tests = new_dicos
-'''
-
 test_data = test_model(pour_tests ,elements_aleatoires_moyenne,NUMBER_TEST)
+save_element("save/test_data"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TEST),test_data)
+#test_data = load_element("save/test_data"+str(NUMBER_CLASSES)+"-"+str(NUMBER_CLASSES)+"-"+str(NUMBER_PATCHES)+"-"+str(NUMBER_TEST))
 
+print("Generation terminee & sauvegarde faite")
 #--------------------------------K nearest neighbours----------------------------------------------
 
 
 from sklearn import neighbors
 
+#use the k nearest neighbours pour trouver la classe des données
 def learn_k_nearest(data_train,data_test):
     donnes = [element for etiquette,element in data_train]
     eti = [dicos['labels'][etiquette] for etiquette,element in data_train]
@@ -411,22 +365,39 @@ def learn_k_nearest(data_train,data_test):
     for i in range(len(predictions)):
         if(predictions[i]!=real_label[i]):
             taux_erreur +=1.0
-            print(predictions[i]!=real_label[i])
-    print("taux d'erreurs ", taux_erreur/float(len(data_train)))
+    print("taux d'erreurs pour Knearest ", taux_erreur/float(len(predictions)))
 
-#moyennes = learn_k_nearest(nouvelles_donnes,test_data)
+
+
+moyennes = learn_k_nearest(nouvelles_donnes,test_data)
+
+#------------------------- SVM LEARNING with cross validation------------------------------------------------------- 
+#simple svm without cross validation
+def learn_SVM(data_train,data_test):
+    donnes = [element for etiquette,element in data_train]
+    eti = [dicos['labels'][etiquette] for etiquette,element in data_train]
+    labels  = pour_tests['labels']
+    svc = svm.SVC(kernel='linear',C=400, verbose=False)
+    scores = cross_validation.cross_val_score(svc,donnes,eti)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+moyennes = learn_SVM(nouvelles_donnes,test_data)
+
+
 
 
 #------------------------- SVM LEARNING-------------------------------------------------------
 
 from sklearn import svm
 
-def learn_SVM(data_train,data_test):
+
+#simple svm without cross validation
+def learn_SVM(data_train,data_test,maxs):
     donnes = [element for etiquette,element in data_train]
     eti = [dicos['labels'][etiquette] for etiquette,element in data_train]
     labels  = pour_tests['labels']
     #linear
-    svc = svm.SVC(kernel='linear')
+    svc = svm.SVC(kernel='linear',C=400, verbose=False,max_iter=maxs)
     print("debut apprentissage linear score : ")
     svc.fit(np.array(donnes), np.array(eti))
     print("score d'apprentissage : ",svc.score(np.array(donnes), np.array(eti)))
@@ -443,8 +414,14 @@ def learn_SVM(data_train,data_test):
             taux_erreur +=1.0
     print("taux d'erreurs en lineaire ",taux_erreur,len(predictions) , taux_erreur/len(predictions),  taux_erreur/float(len(predictions)))
 
-moyennes = learn_SVM(nouvelles_donnes,test_data)
-#------------------------ Perceptron utilisant les nouvelles donnes --------------------------
+moyennes = learn_SVM(nouvelles_donnes,test_data,199)
+moyennes = learn_SVM(nouvelles_donnes,test_data,400)
+moyennes = learn_SVM(nouvelles_donnes,test_data,700)
+moyennes = learn_SVM(nouvelles_donnes,test_data,1000)
+moyennes = learn_SVM(nouvelles_donnes,test_data,1500)
+
+
+#------------------------ Perceptron multiclasse utilisant les nouvelles donnes --------------------------
 
 
 #return the estimate classes of an observation
@@ -486,6 +463,6 @@ def test(corpus,poids,labels):
 
 
 print("Debut du perceptron")
-poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*4)] for j in range(10)]),dicos['labels'])
+poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*16)] for j in range(10)]),dicos['labels'])
 print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
 print("fin des test")
