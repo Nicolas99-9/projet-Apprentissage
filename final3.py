@@ -17,6 +17,9 @@ import pickle
 from sklearn import metrics
 from sklearn import cross_validation
 from sklearn import svm
+from perceptron_multi import Perceptron_multi
+
+
 
 '''
 NUMBER_CLASSES = 700
@@ -74,7 +77,7 @@ NUMBER_TEST = 800
 EPOQS = 60
 '''
 
-
+'''
 NUMBER_CLASSES = 1600
 #size of each patch
 NUMBER_PATCHES =  16
@@ -86,6 +89,23 @@ NUMBER_K_MEANS = 11000
 NUMBER_TRAIN = 8000
 #number of data to evaluate our model
 NUMBER_TEST = 1300
+#number of periods of the perceptron
+EPOQS = 40
+'''
+
+
+
+NUMBER_CLASSES = 50
+#size of each patch
+NUMBER_PATCHES =  16
+#number of perdios for k means function
+NUMBER_PERIODS = 10
+#number of images to use for  the k means function
+NUMBER_K_MEANS = 300
+#number of data for training
+NUMBER_TRAIN = 300
+#number of data to evaluate our model
+NUMBER_TEST = 200
 #number of periods of the perceptron
 EPOQS = 40
 
@@ -369,7 +389,7 @@ def learn_k_nearest(data_train,data_test):
 
 
 
-moyennes = learn_k_nearest(nouvelles_donnes,test_data)
+#moyennes = learn_k_nearest(nouvelles_donnes,test_data)
 
 #------------------------- SVM LEARNING with cross validation------------------------------------------------------- 
 #simple svm without cross validation
@@ -381,7 +401,7 @@ def learn_SVM(data_train,data_test):
     scores = cross_validation.cross_val_score(svc,donnes,eti)
     print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
-moyennes = learn_SVM(nouvelles_donnes,test_data)
+#moyennes = learn_SVM(nouvelles_donnes,test_data)
 
 
 
@@ -417,7 +437,7 @@ def learn_SVM(data_train,data_test,maxs):
 
 
 
-
+'''
 moyennes = learn_SVM(nouvelles_donnes,test_data,30)
 moyennes = learn_SVM(nouvelles_donnes,test_data,60)
 moyennes = learn_SVM(nouvelles_donnes,test_data,199)
@@ -425,11 +445,25 @@ moyennes = learn_SVM(nouvelles_donnes,test_data,400)
 moyennes = learn_SVM(nouvelles_donnes,test_data,700)
 moyennes = learn_SVM(nouvelles_donnes,test_data,1000)
 moyennes = learn_SVM(nouvelles_donnes,test_data,1500)
-
+'''
 
 #------------------------ Perceptron multiclasse utilisant les nouvelles donnes --------------------------
 
 
+nb_l = int(NUMBER_TRAIN*0.80)
+new_trains = zip(dicos['labels'][:nb_l],[b for a,b in nouvelles_donnes][:nb_l])
+cross_valid = zip(dicos['labels'][nb_l:],[b for a,b in nouvelles_donnes][nb_l:])
+new_tests = zip(pour_tests['labels'],[b for a,b in test_data])
+
+
+print(new_tests)
+
+perceptron = Perceptron_multi(new_trains,new_tests,cross_valid,10)
+
+#nb epoqs, crit arret , learning rate
+perceptron.learn_shuffle(20,0.1,0.7)
+print("Taux d'erruers en tests : ", perceptron.testing())
+'''
 #return the estimate classes of an observation
 def classify(observation, poids):
     vl = 0
@@ -472,3 +506,4 @@ print("Debut du perceptron")
 poids = learn(nouvelles_donnes,EPOQS,np.array([[0 for i in range(NUMBER_CLASSES*16)] for j in range(10)]),dicos['labels'])
 print("Taux d'erreur : ",test(test_data,poids,pour_tests['labels']))
 print("fin des test")
+'''
