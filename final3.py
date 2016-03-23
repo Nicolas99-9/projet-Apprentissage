@@ -95,17 +95,17 @@ EPOQS = 40
 
 
 
-NUMBER_CLASSES = 50
+NUMBER_CLASSES = 1600
 #size of each patch
 NUMBER_PATCHES =  16
 #number of perdios for k means function
 NUMBER_PERIODS = 10
 #number of images to use for  the k means function
-NUMBER_K_MEANS = 300
+NUMBER_K_MEANS = 9000
 #number of data for training
-NUMBER_TRAIN = 300
+NUMBER_TRAIN = 8000
 #number of data to evaluate our model
-NUMBER_TEST = 200
+NUMBER_TEST = 1300
 #number of periods of the perceptron
 EPOQS = 40
 
@@ -461,7 +461,7 @@ print(new_tests)
 perceptron = Perceptron_multi(new_trains,new_tests,cross_valid,10)
 
 #nb epoqs, crit arret , learning rate
-perceptron.learn_shuffle(20,0.1,0.7)
+perceptron.learn_shuffle(35,0.1,0.7)
 print("Taux d'erruers en tests : ", perceptron.testing())
 '''
 #return the estimate classes of an observation
